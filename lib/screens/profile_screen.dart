@@ -7,6 +7,7 @@ class ProfileScreen extends StatelessWidget {
   final String userName;
   final String userPhone;
   final String userEmail;
+  final String userRole;
 
   const ProfileScreen({
     super.key,
@@ -14,6 +15,7 @@ class ProfileScreen extends StatelessWidget {
     required this.userName,
     required this.userPhone,
     required this.userEmail,
+    this.userRole = '1',
   });
 
   @override
@@ -44,6 +46,23 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    String roleLabel = 'Regular User';
+    Color roleColor = const Color(0xFF3E7C59);
+    switch (userRole) {
+      case '2':
+        roleLabel = 'System Admin';
+        roleColor = const Color(0xFF5A93E5);
+        break;
+      case '3':
+        roleLabel = 'Resort Owner';
+        roleColor = const Color(0xFFE5A93C);
+        break;
+      case '4':
+        roleLabel = 'Ticket Scanner';
+        roleColor = const Color(0xFFE57373);
+        break;
+    }
+
     return Container(
       padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 40),
       decoration: const BoxDecoration(
@@ -63,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -96,6 +115,22 @@ class ProfileScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: roleColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    roleLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: roleColor,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

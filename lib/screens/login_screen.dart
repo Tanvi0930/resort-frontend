@@ -4,6 +4,8 @@ import 'dart:convert';
 import '../api_configue.dart';
 import 'main_screen.dart';
 import 'register_screen.dart';
+import 'admin/admin_panel_screen.dart';
+import 'owner/owner_panel_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,18 +55,46 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         // Login successful
         final body = jsonDecode(response.body);
+        final String role = (body['role'] ?? '1').toString();
+        
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainScreen(
-                userId: body['userId'].toString(),
-                userName: body['name'] ?? 'User',
-                userPhone: _phoneController.text.trim(),
-                userEmail: body['email'] ?? 'Not Provided',
+          if (role == '2') {
+            // Admin Panel
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AdminPanelScreen(
+                  adminName: body['name'] ?? 'Admin',
+                  adminRole: role,
+                ),
               ),
-            ),
-          );
+            );
+          } else if (role == '3') {
+            // Resort Owner Panel
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OwnerPanelScreen(
+                  ownerName: body['name'] ?? 'Owner',
+                  ownerRole: role,
+                ),
+              ),
+            );
+          } else {
+            // User Panel / Ticket Scanner Dashboard
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MainScreen(
+                  userId: body['userId'].toString(),
+                  userName: body['name'] ?? 'User',
+                  userPhone: _phoneController.text.trim(),
+                  userEmail: body['email'] ?? 'Not Provided',
+                  userRole: role,
+                ),
+              ),
+            );
+          }
         }
       } else if (response.statusCode == 404) {
         // User not found, navigate to register
@@ -313,28 +343,32 @@ class _LoginScreenState extends State<LoginScreen> {
             // Sign Up Link
             Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
                 children: [
-                  const Text(
-                    'Don\'t have an account? ',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Color(0xFF3E7C59),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Don\'t have an account? ',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
                       ),
-                    ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                          );
+                        },
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: Color(0xFF3E7C59),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
