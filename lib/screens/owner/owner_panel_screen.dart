@@ -36,69 +36,11 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   void initState() {
     super.initState();
 
-    _resorts = [
-      {
-        'id': 'R1',
-        'name': 'Ocean Paradise Resort',
-        'location': 'Goa, India',
-        'rooms': 40,
-        'price': 245000,
-        'imageUrl':
-            'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070&auto=format&fit=crop',
-        'rating': 4.8,
-        'description':
-            'A stunning beachfront resort with world-class amenities and breathtaking ocean views.',
-      },
-      {
-        'id': 'R2',
-        'name': 'Mountain View Resort',
-        'location': 'Manali, India',
-        'rooms': 36,
-        'price': 185400,
-        'imageUrl':
-            'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop',
-        'rating': 4.6,
-        'description':
-            'Nestled in the heart of the Himalayas, offering serene mountain views and adventure activities.',
-      },
-    ];
+    _resorts = [];
 
     _locations = [];
 
-    _bookings = [
-      {
-        'id': 'B342',
-        'resortName': 'Ocean Paradise Resort',
-        'guestName': 'Aryan Mehta',
-        'date': '20 May 2025',
-        'status': 'Confirmed',
-        'amount': 15000,
-      },
-      {
-        'id': 'B343',
-        'resortName': 'Mountain View Resort',
-        'guestName': 'Priya Sharma',
-        'date': '20 May 2025',
-        'status': 'Pending',
-        'amount': 12000,
-      },
-      {
-        'id': 'B344',
-        'resortName': 'Ocean Paradise Resort',
-        'guestName': 'Rohan Das',
-        'date': '19 May 2025',
-        'status': 'Confirmed',
-        'amount': 18000,
-      },
-      {
-        'id': 'B345',
-        'resortName': 'Mountain View Resort',
-        'guestName': 'Sneha Patel',
-        'date': '19 May 2025',
-        'status': 'Cancelled',
-        'amount': 9500,
-      },
-    ];
+    _bookings = [];
 
     _activities = [
       {
@@ -134,6 +76,69 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
     ];
 
     _fetchLocationsFromBackend();
+    _fetchResortsFromBackend();
+    _fetchBookingsFromBackend();
+  }
+
+  Future<void> _fetchResortsFromBackend() async {
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.get(Uri.parse('$baseUrl/api/resorts'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _resorts = data.map((item) {
+            return {
+              'id': (item['id'] ?? '').toString(),
+              'name': item['name'] ?? '',
+              'location': item['location'] ?? '',
+              'contactNo': item['contactNo'] ?? '',
+              'email': item['email'] ?? '',
+              'rooms': item['rooms'] ?? 0,
+              'lockerNo': item['lockerNo'] ?? 0,
+              'price': item['price'] ?? 0.0,
+              'serviceOption': item['serviceOption'] ?? '',
+              'imageUrl': item['imageUrl'] ?? '',
+              'rating': item['rating'] ?? 4.5,
+              'description': item['description'] ?? '',
+              'category': item['category'] ?? 'Family',
+              'foodDetails': {
+                'veg': item['veg'] ?? false,
+                'nonVeg': item['nonVeg'] ?? false,
+                'breakfast': item['breakfast'] ?? false,
+                'breaksnacks': item['breaksnacks'] ?? false,
+              }
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching resorts: $e');
+    }
+  }
+
+  Future<void> _fetchBookingsFromBackend() async {
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.get(Uri.parse('$baseUrl/api/bookings'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _bookings = data.map((item) {
+            return {
+              'id': (item['id'] ?? '').toString(),
+              'resortName': item['resortName'] ?? '',
+              'guestName': item['guestName'] ?? '',
+              'date': item['date'] ?? '',
+              'status': item['status'] ?? 'Pending',
+              'amount': item['amount'] ?? 0.0,
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching bookings: $e');
+    }
   }
 
   Future<void> _fetchLocationsFromBackend() async {
@@ -174,29 +179,92 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   }
 
   // --- Resort State Callbacks ---
-  void _handleResortAdded(Map<String, dynamic> resort) {
-    setState(() {
-      _resorts.add(resort);
-    });
+  Future<void> _handleResortAdded(Map<String, dynamic> resort) async {
     _addActivityLog('New resort added: ${resort['name']}',
         Icons.add_business_outlined, const Color(0xFF3E7C59));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/resorts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': resort['name'],
+          'location': resort['location'],
+          'contactNo': resort['contactNo'],
+          'email': resort['email'],
+          'rooms': resort['rooms'],
+          'lockerNo': resort['lockerNo'],
+          'price': resort['price'],
+          'serviceOption': resort['serviceOption'],
+          'imageUrl': resort['imageUrl'],
+          'rating': resort['rating'],
+          'description': resort['description'],
+          'veg': resort['foodDetails']?['veg'] ?? false,
+          'nonVeg': resort['foodDetails']?['nonVeg'] ?? false,
+          'breakfast': resort['foodDetails']?['breakfast'] ?? false,
+          'breaksnacks': resort['foodDetails']?['breaksnacks'] ?? false,
+          'category': resort['category'],
+        }),
+      );
+      if (response.statusCode == 201) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error adding resort: $e');
+    }
   }
 
-  void _handleResortUpdated(int index, Map<String, dynamic> resort) {
-    setState(() {
-      _resorts[index] = resort;
-    });
+  Future<void> _handleResortUpdated(int index, Map<String, dynamic> resort) async {
     _addActivityLog('Resort updated: ${resort['name']}',
         Icons.edit_outlined, const Color(0xFFE5A93C));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/resorts/${resort['id']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': resort['name'],
+          'location': resort['location'],
+          'contactNo': resort['contactNo'],
+          'email': resort['email'],
+          'rooms': resort['rooms'],
+          'lockerNo': resort['lockerNo'],
+          'price': resort['price'],
+          'serviceOption': resort['serviceOption'],
+          'imageUrl': resort['imageUrl'],
+          'rating': resort['rating'],
+          'description': resort['description'],
+          'veg': resort['foodDetails']?['veg'] ?? false,
+          'nonVeg': resort['foodDetails']?['nonVeg'] ?? false,
+          'breakfast': resort['foodDetails']?['breakfast'] ?? false,
+          'breaksnacks': resort['foodDetails']?['breaksnacks'] ?? false,
+          'category': resort['category'],
+        }),
+      );
+      if (response.statusCode == 200) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error updating resort: $e');
+    }
   }
 
-  void _handleResortDeleted(int index) {
-    final name = _resorts[index]['name'];
-    setState(() {
-      _resorts.removeAt(index);
-    });
+  Future<void> _handleResortDeleted(int index) async {
+    final rs = _resorts[index];
+    final name = rs['name'];
     _addActivityLog(
         'Resort deleted: $name', Icons.delete_outline, Colors.redAccent);
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/resorts/${rs['id']}'),
+      );
+      if (response.statusCode == 200) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error deleting resort: $e');
+    }
   }
 
   // --- Locations State Callbacks ---
@@ -268,33 +336,74 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   }
 
   // --- Bookings State Callbacks ---
-  void _handleBookingAdded(Map<String, dynamic> bk) {
-    setState(() {
-      _bookings.add(bk);
-    });
+  Future<void> _handleBookingAdded(Map<String, dynamic> bk) async {
     _addActivityLog(
         'New booking created for ${bk['guestName']}',
         Icons.calendar_today_outlined,
         const Color(0xFF3E7C59));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/bookings'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'resortName': bk['resortName'],
+          'guestName': bk['guestName'],
+          'date': bk['date'],
+          'status': bk['status'],
+          'amount': bk['amount'],
+        }),
+      );
+      if (response.statusCode == 201) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error adding booking: $e');
+    }
   }
 
-  void _handleBookingUpdated(int index, Map<String, dynamic> bk) {
-    setState(() {
-      _bookings[index] = bk;
-    });
+  Future<void> _handleBookingUpdated(int index, Map<String, dynamic> bk) async {
     _addActivityLog(
         'Booking updated: ${bk['guestName']} (${bk['status']})',
         Icons.edit_calendar_outlined,
         const Color(0xFFE5A93C));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/bookings/${bk['id']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'resortName': bk['resortName'],
+          'guestName': bk['guestName'],
+          'date': bk['date'],
+          'status': bk['status'],
+          'amount': bk['amount'],
+        }),
+      );
+      if (response.statusCode == 200) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error updating booking: $e');
+    }
   }
 
-  void _handleBookingDeleted(int index) {
-    final guest = _bookings[index]['guestName'];
-    setState(() {
-      _bookings.removeAt(index);
-    });
+  Future<void> _handleBookingDeleted(int index) async {
+    final bk = _bookings[index];
+    final guest = bk['guestName'];
     _addActivityLog(
         'Booking deleted: $guest', Icons.delete_sweep_outlined, Colors.redAccent);
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/bookings/${bk['id']}'),
+      );
+      if (response.statusCode == 200) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error deleting booking: $e');
+    }
   }
 
   Widget _buildSelectedView() {

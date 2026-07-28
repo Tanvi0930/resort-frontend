@@ -6,6 +6,7 @@ import 'admin_dashboard_view.dart';
 import 'admin_users_view.dart';
 import 'admin_locations_view.dart';
 import 'admin_bookings_view.dart';
+import '../owner/owner_resort_details_view.dart';
 import '../login_screen.dart';
 
 class AdminPanelScreen extends StatefulWidget {
@@ -36,44 +37,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   void initState() {
     super.initState();
     // Initialize mock data
-    _resorts = [
-      {
-        'id': 'R1',
-        'name': 'Ocean Paradise Resort',
-        'location': 'Goa, India',
-        'rooms': 40,
-        'price': 245000,
-        'imageUrl': 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070&auto=format&fit=crop',
-        'rating': 4.8,
-      },
-      {
-        'id': 'R2',
-        'name': 'Mountain View Resort',
-        'location': 'Manali, India',
-        'rooms': 36,
-        'price': 185400,
-        'imageUrl': 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop',
-        'rating': 4.6,
-      },
-      {
-        'id': 'R3',
-        'name': 'Palm Grove Resort',
-        'location': 'Alibaug, India',
-        'rooms': 30,
-        'price': 125600,
-        'imageUrl': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop',
-        'rating': 4.5,
-      },
-      {
-        'id': 'R4',
-        'name': 'Sunset Beach Resort',
-        'location': 'Goa, India',
-        'rooms': 50,
-        'price': 95200,
-        'imageUrl': 'https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=2070&auto=format&fit=crop',
-        'rating': 4.4,
-      },
-    ];
+    _resorts = [];
 
     _locations = [];
 
@@ -116,40 +80,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       },
     ];
 
-    _bookings = [
-      {
-        'id': 'B342',
-        'resortName': 'Ocean Paradise Resort',
-        'guestName': 'John Doe',
-        'date': '20 May 2025',
-        'status': 'Confirmed',
-        'amount': 15000,
-      },
-      {
-        'id': 'B343',
-        'resortName': 'Green Valley Resort',
-        'guestName': 'Emma Watson',
-        'date': '20 May 2025',
-        'status': 'Pending',
-        'amount': 12000,
-      },
-      {
-        'id': 'B344',
-        'resortName': 'Lake View Resort',
-        'guestName': 'Robert Smith',
-        'date': '19 May 2025',
-        'status': 'Confirmed',
-        'amount': 18000,
-      },
-      {
-        'id': 'B345',
-        'resortName': 'Palm Grove Resort',
-        'guestName': 'Olivia Brown',
-        'date': '19 May 2025',
-        'status': 'Cancelled',
-        'amount': 9500,
-      },
-    ];
+    _bookings = [];
 
     _activities = [
       {
@@ -185,6 +116,68 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     ];
     _fetchUsersFromBackend();
     _fetchLocationsFromBackend();
+    _fetchBookingsFromBackend();
+    _fetchResortsFromBackend();
+  }
+
+  Future<void> _fetchResortsFromBackend() async {
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.get(Uri.parse('$baseUrl/api/resorts'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _resorts = data.map((item) {
+            return {
+              'id': (item['id'] ?? '').toString(),
+              'name': item['name'] ?? '',
+              'location': item['location'] ?? '',
+              'contactNo': item['contactNo'] ?? '',
+              'email': item['email'] ?? '',
+              'rooms': item['rooms'] ?? 0,
+              'lockerNo': item['lockerNo'] ?? 0,
+              'price': item['price'] ?? 0.0,
+              'serviceOption': item['serviceOption'] ?? '',
+              'imageUrl': item['imageUrl'] ?? '',
+              'rating': item['rating'] ?? 4.5,
+              'description': item['description'] ?? '',
+              'foodDetails': {
+                'veg': item['veg'] ?? false,
+                'nonVeg': item['nonVeg'] ?? false,
+                'breakfast': item['breakfast'] ?? false,
+                'breaksnacks': item['breaksnacks'] ?? false,
+              }
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching resorts: $e');
+    }
+  }
+
+  Future<void> _fetchBookingsFromBackend() async {
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.get(Uri.parse('$baseUrl/api/bookings'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _bookings = data.map((item) {
+            return {
+              'id': (item['id'] ?? '').toString(),
+              'resortName': item['resortName'] ?? '',
+              'guestName': item['guestName'] ?? '',
+              'date': item['date'] ?? '',
+              'status': item['status'] ?? 'Pending',
+              'amount': item['amount'] ?? 0.0,
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching bookings: $e');
+    }
   }
 
   Future<void> _fetchLocationsFromBackend() async {
@@ -247,6 +240,95 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         _activities.removeLast();
       }
     });
+  }
+
+  // --- Resort State Callbacks ---
+  Future<void> _handleResortAdded(Map<String, dynamic> resort) async {
+    _addActivityLog('New resort added: ${resort['name']}',
+        Icons.add_business_outlined, const Color(0xFF3E7C59));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/resorts'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': resort['name'],
+          'location': resort['location'],
+          'contactNo': resort['contactNo'],
+          'email': resort['email'],
+          'rooms': resort['rooms'],
+          'lockerNo': resort['lockerNo'],
+          'price': resort['price'],
+          'serviceOption': resort['serviceOption'],
+          'imageUrl': resort['imageUrl'],
+          'rating': resort['rating'],
+          'description': resort['description'],
+          'veg': resort['foodDetails']?['veg'] ?? false,
+          'nonVeg': resort['foodDetails']?['nonVeg'] ?? false,
+          'breakfast': resort['foodDetails']?['breakfast'] ?? false,
+          'breaksnacks': resort['foodDetails']?['breaksnacks'] ?? false,
+          'category': resort['category'],
+        }),
+      );
+      if (response.statusCode == 201) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error adding resort: $e');
+    }
+  }
+
+  Future<void> _handleResortUpdated(int index, Map<String, dynamic> resort) async {
+    _addActivityLog('Resort updated: ${resort['name']}',
+        Icons.edit_outlined, const Color(0xFFE5A93C));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/resorts/${resort['id']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': resort['name'],
+          'location': resort['location'],
+          'contactNo': resort['contactNo'],
+          'email': resort['email'],
+          'rooms': resort['rooms'],
+          'lockerNo': resort['lockerNo'],
+          'price': resort['price'],
+          'serviceOption': resort['serviceOption'],
+          'imageUrl': resort['imageUrl'],
+          'rating': resort['rating'],
+          'description': resort['description'],
+          'veg': resort['foodDetails']?['veg'] ?? false,
+          'nonVeg': resort['foodDetails']?['nonVeg'] ?? false,
+          'breakfast': resort['foodDetails']?['breakfast'] ?? false,
+          'breaksnacks': resort['foodDetails']?['breaksnacks'] ?? false,
+          'category': resort['category'],
+        }),
+      );
+      if (response.statusCode == 200) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error updating resort: $e');
+    }
+  }
+
+  Future<void> _handleResortDeleted(int index) async {
+    final rs = _resorts[index];
+    final name = rs['name'];
+    _addActivityLog(
+        'Resort deleted: $name', Icons.delete_outline, Colors.redAccent);
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/resorts/${rs['id']}'),
+      );
+      if (response.statusCode == 200) {
+        _fetchResortsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error deleting resort: $e');
+    }
   }
 
   // --- Users State Callbacks ---
@@ -388,26 +470,67 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   // --- Bookings State Callbacks ---
-  void _handleBookingAdded(Map<String, dynamic> bk) {
-    setState(() {
-      _bookings.add(bk);
-    });
+  Future<void> _handleBookingAdded(Map<String, dynamic> bk) async {
     _addActivityLog('New booking created for ${bk['guestName']}', Icons.calendar_today_outlined, const Color(0xFF3E7C59));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/bookings'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'resortName': bk['resortName'],
+          'guestName': bk['guestName'],
+          'date': bk['date'],
+          'status': bk['status'],
+          'amount': bk['amount'],
+        }),
+      );
+      if (response.statusCode == 201) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error adding booking: $e');
+    }
   }
 
-  void _handleBookingUpdated(int index, Map<String, dynamic> bk) {
-    setState(() {
-      _bookings[index] = bk;
-    });
+  Future<void> _handleBookingUpdated(int index, Map<String, dynamic> bk) async {
     _addActivityLog('Booking status updated: ${bk['guestName']} (${bk['status']})', Icons.edit_calendar_outlined, const Color(0xFFE5A93C));
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/bookings/${bk['id']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'resortName': bk['resortName'],
+          'guestName': bk['guestName'],
+          'date': bk['date'],
+          'status': bk['status'],
+          'amount': bk['amount'],
+        }),
+      );
+      if (response.statusCode == 200) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error updating booking: $e');
+    }
   }
 
-  void _handleBookingDeleted(int index) {
-    final guest = _bookings[index]['guestName'];
-    setState(() {
-      _bookings.removeAt(index);
-    });
+  Future<void> _handleBookingDeleted(int index) async {
+    final bk = _bookings[index];
+    final guest = bk['guestName'];
     _addActivityLog('Booking deleted: $guest', Icons.delete_sweep_outlined, Colors.redAccent);
+    try {
+      final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/bookings/${bk['id']}'),
+      );
+      if (response.statusCode == 200) {
+        _fetchBookingsFromBackend();
+      }
+    } catch (e) {
+      debugPrint('Error deleting booking: $e');
+    }
   }
 
   // Helper to map index to sub-view widget
@@ -448,6 +571,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           onUserUpdated: _handleUserUpdated,
           onUserDeleted: _handleUserDeleted,
         );
+      case 4:
+        return OwnerResortDetailsView(
+          resorts: _resorts,
+          onResortAdded: _handleResortAdded,
+          onResortUpdated: _handleResortUpdated,
+          onResortDeleted: _handleResortDeleted,
+        );
       default:
         // Mock placeholder view for other tabs
         final title = _getMenuTitle(_selectedMenuIndex);
@@ -475,6 +605,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       1: 'Location',
       2: 'Booking',
       3: 'User',
+      4: 'Resorts',
     };
     return titles[index] ?? 'Panel';
   }
@@ -723,6 +854,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               _buildSidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
               if (widget.adminRole != '3')
                 _buildSidebarItem(3, Icons.people_outline, 'User'),
+              _buildSidebarItem(4, Icons.villa_outlined, 'Resorts'),
               _buildSidebarItem(1, Icons.location_on_outlined, 'Location'),
               _buildSidebarItem(2, Icons.calendar_today_outlined, 'Booking'),
             ],

@@ -34,20 +34,39 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
 
   void _showResortFormDialog({int? index, Map<String, dynamic>? resort}) {
     final isEditing = index != null && resort != null;
-    final nameController =
-        TextEditingController(text: isEditing ? resort['name'] : '');
-    final locationController =
-        TextEditingController(text: isEditing ? resort['location'] : '');
-    final roomsController =
-        TextEditingController(text: isEditing ? '${resort['rooms'] ?? ''}' : '');
-    final priceController =
-        TextEditingController(text: isEditing ? '${resort['price'] ?? ''}' : '');
-    final imageUrlController =
-        TextEditingController(text: isEditing ? resort['imageUrl'] ?? '' : '');
-    final ratingController =
-        TextEditingController(text: isEditing ? '${resort['rating'] ?? ''}' : '');
-    final descriptionController =
-        TextEditingController(text: isEditing ? resort['description'] ?? '' : '');
+    final nameController = TextEditingController(text: isEditing ? resort['name'] : '');
+    final contactController = TextEditingController(text: isEditing ? resort['contactNo'] : '');
+    final emailController = TextEditingController(text: isEditing ? resort['email'] : '');
+    
+    String initialCity = '';
+    String initialState = '';
+    if (isEditing && resort['location'] != null) {
+      final parts = resort['location'].toString().split(', ');
+      if (parts.isNotEmpty) initialCity = parts[0];
+      if (parts.length >= 2) initialState = parts[1];
+    }
+    
+    final cityController = TextEditingController(text: initialCity);
+    final stateController = TextEditingController(text: initialState);
+
+    final roomsController = TextEditingController(text: isEditing ? '${resort['rooms'] ?? ''}' : '');
+    final lockerController = TextEditingController(text: isEditing ? '${resort['lockerNo'] ?? ''}' : '');
+    final priceController = TextEditingController(text: isEditing ? '${resort['price'] ?? ''}' : '');
+    final serviceController = TextEditingController(text: isEditing ? resort['serviceOption'] : '');
+    final ratingController = TextEditingController(text: isEditing ? '${resort['rating'] ?? ''}' : '');
+    final descriptionController = TextEditingController(text: isEditing ? resort['description'] ?? '' : '');
+
+    bool isVeg = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['veg'] ?? false : false;
+    bool isNonVeg = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['nonVeg'] ?? false : false;
+    bool isBreakfast = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['breakfast'] ?? false : false;
+    bool isBreaksnacks = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['breaksnacks'] ?? false : false;
+
+    // Parse categories from comma-separated string
+    final catStr = (isEditing && resort['category'] != null) ? resort['category'].toString().toLowerCase() : '';
+    bool isFamily = catStr.contains('family');
+    bool isGroup = catStr.contains('group');
+    bool isSchoolTrip = catStr.contains('school trip');
+    bool isCorporate = catStr.contains('corporate');
 
     showDialog(
       context: context,
@@ -71,24 +90,20 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildFormField(nameController, 'Resort Name',
-                          Icons.villa_outlined),
+                      _buildFormField(nameController, 'Resort Name', Icons.villa_outlined),
                       const SizedBox(height: 12),
-                      _buildFormField(locationController, 'Location',
-                          Icons.location_on_outlined),
+                      _buildFormField(contactController, 'Contact No', Icons.phone_outlined, isNumber: true),
+                      const SizedBox(height: 12),
+                      _buildFormField(emailController, 'Email', Icons.email_outlined),
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
-                            child: _buildFormField(roomsController,
-                                'Total Rooms', Icons.bed_outlined,
-                                isNumber: true),
+                            child: _buildFormField(stateController, 'State', Icons.map_outlined),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _buildFormField(priceController,
-                                'Price (₹/night)', Icons.currency_rupee,
-                                isNumber: true),
+                            child: _buildFormField(cityController, 'City', Icons.location_city_outlined),
                           ),
                         ],
                       ),
@@ -96,16 +111,80 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildFormField(ratingController,
-                                'Rating (0-5)', Icons.star_border,
-                                isNumber: true),
+                            child: _buildFormField(roomsController, 'Rooms No Available', Icons.bed_outlined, isNumber: true),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildFormField(lockerController, 'Locker No Available', Icons.lock_outline, isNumber: true),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildFormField(imageUrlController, 'Image URL',
-                          Icons.image_outlined),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildFormField(priceController, 'Per Person Price (₹)', Icons.currency_rupee, isNumber: true),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildFormField(ratingController, 'Rating (0-5)', Icons.star_border, isNumber: true),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
+                      _buildFormField(serviceController, 'Service Option', Icons.room_service_outlined),
+                      const SizedBox(height: 12),
+                      
+                      // Categories Section
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Resort Categories',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E3A2B),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        children: [
+                          _buildCheckbox('Family', isFamily, (val) => setDialogState(() => isFamily = val!)),
+                          _buildCheckbox('Groups', isGroup, (val) => setDialogState(() => isGroup = val!)),
+                          _buildCheckbox('School Trip', isSchoolTrip, (val) => setDialogState(() => isSchoolTrip = val!)),
+                          _buildCheckbox('Corporate', isCorporate, (val) => setDialogState(() => isCorporate = val!)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Food Details Section
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Food Details',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E3A2B),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        children: [
+                          _buildCheckbox('Veg', isVeg, (val) => setDialogState(() => isVeg = val!)),
+                          _buildCheckbox('Non-Veg', isNonVeg, (val) => setDialogState(() => isNonVeg = val!)),
+                          _buildCheckbox('Breakfast', isBreakfast, (val) => setDialogState(() => isBreakfast = val!)),
+                          _buildCheckbox('Breaksnacks', isBreaksnacks, (val) => setDialogState(() => isBreaksnacks = val!)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
                       TextFormField(
                         controller: descriptionController,
                         maxLines: 3,
@@ -160,13 +239,26 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                           ? resort['id']
                           : 'R${DateTime.now().millisecondsSinceEpoch}',
                       'name': nameController.text.trim(),
-                      'location': locationController.text.trim(),
+                      'contactNo': contactController.text.trim(),
+                      'email': emailController.text.trim(),
+                      'location': [cityController.text.trim(), stateController.text.trim()].where((e) => e.isNotEmpty).join(', '),
                       'rooms': int.tryParse(roomsController.text.trim()) ?? 0,
-                      'price':
-                          double.tryParse(priceController.text.trim()) ?? 0.0,
-                      'rating':
-                          double.tryParse(ratingController.text.trim()) ?? 0.0,
-                      'imageUrl': imageUrlController.text.trim(),
+                      'lockerNo': int.tryParse(lockerController.text.trim()) ?? 0,
+                      'price': double.tryParse(priceController.text.trim()) ?? 0.0,
+                      'serviceOption': serviceController.text.trim(),
+                      'rating': double.tryParse(ratingController.text.trim()) ?? 0.0,
+                      'foodDetails': {
+                        'veg': isVeg,
+                        'nonVeg': isNonVeg,
+                        'breakfast': isBreakfast,
+                        'breaksnacks': isBreaksnacks,
+                      },
+                      'category': [
+                        if (isFamily) 'Family',
+                        if (isGroup) 'Groups',
+                        if (isSchoolTrip) 'School Trip',
+                        if (isCorporate) 'Corporate',
+                      ].join(', '),
                       'description': descriptionController.text.trim(),
                     };
                     Navigator.pop(context);
@@ -176,13 +268,27 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                       widget.onResortAdded(newResort);
                     }
                   },
-                  child: Text(isEditing ? 'Save Changes' : 'Add Resort'),
+                  child: Text(isEditing ? 'Save Details' : 'Add Resort Details'),
                 ),
               ],
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildCheckbox(String title, bool value, ValueChanged<bool?> onChanged) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Checkbox(
+          value: value,
+          onChanged: onChanged,
+          activeColor: const Color(0xFF3E7C59),
+        ),
+        Text(title, style: const TextStyle(fontSize: 13)),
+      ],
     );
   }
 
@@ -296,7 +402,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
               ElevatedButton.icon(
                 onPressed: () => _showResortFormDialog(),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Resort'),
+                label: const Text('Add Resort Details'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3E7C59),
                   foregroundColor: Colors.white,
@@ -412,8 +518,18 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
   Widget _buildResortCard(Map<String, dynamic> resort, int index) {
     final rating = (resort['rating'] as num? ?? 0).toDouble();
     final rooms = resort['rooms'] ?? 0;
+    final lockerNo = resort['lockerNo'] ?? 0;
     final price = (resort['price'] as num? ?? 0).toInt();
     final imageUrl = resort['imageUrl'] ?? '';
+    
+    List<String> foodOptions = [];
+    if (resort['foodDetails'] != null) {
+      if (resort['foodDetails']['veg'] == true) foodOptions.add('Veg');
+      if (resort['foodDetails']['nonVeg'] == true) foodOptions.add('Non-Veg');
+      if (resort['foodDetails']['breakfast'] == true) foodOptions.add('Breakfast');
+      if (resort['foodDetails']['breaksnacks'] == true) foodOptions.add('Snacks');
+    }
+    String foodStr = foodOptions.isEmpty ? 'None' : foodOptions.join(', ');
 
     return Container(
       decoration: BoxDecoration(
@@ -429,20 +545,6 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
       ),
       child: Row(
         children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16)),
-            child: imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    width: 140,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, e, s) => _buildImagePlaceholder(),
-                  )
-                : _buildImagePlaceholder(),
-          ),
           // Details
           Expanded(
             child: Padding(
@@ -454,99 +556,85 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        resort['name'] ?? 'Unnamed Resort',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E3A2B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.location_on,
-                              size: 13, color: Colors.grey),
-                          const SizedBox(width: 3),
                           Expanded(
                             child: Text(
-                              resort['location'] ?? '',
+                              resort['name'] ?? 'Unnamed Resort',
                               style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E3A2B),
+                              ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                      if ((resort['description'] ?? '').toString().isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          resort['description'],
-                          style: const TextStyle(
-                              fontSize: 11, color: Colors.grey),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          _buildInfoChip(
-                              '$rooms Rooms', Icons.bed_outlined,
-                              const Color(0xFF5A93E5),
-                              const Color(0xFFEBF1FC)),
-                          const SizedBox(width: 8),
-                          _buildInfoChip(
-                              '₹$price/night',
-                              Icons.currency_rupee,
-                              const Color(0xFF9C6FDE),
-                              const Color(0xFFF3EDFB)),
+                          Text(
+                            '₹$price / person',
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3E7C59)),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          _buildDetailText(Icons.location_on, resort['location'] ?? ''),
+                          if ((resort['contactNo'] ?? '').isNotEmpty) _buildDetailText(Icons.phone, resort['contactNo']),
+                          if ((resort['email'] ?? '').isNotEmpty) _buildDetailText(Icons.email, resort['email']),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildInfoChip(resort['category'] ?? 'Category', Icons.category_outlined, const Color(0xFFE5A93C), const Color(0xFFFDF3E3)),
+                          _buildInfoChip('$rooms Rooms', Icons.bed_outlined, const Color(0xFF5A93E5), const Color(0xFFEBF1FC)),
+                          _buildInfoChip('$lockerNo Lockers', Icons.lock_outline, const Color(0xFFE5A93C), const Color(0xFFFDF3E3)),
+                          if ((resort['serviceOption'] ?? '').isNotEmpty)
+                            _buildInfoChip(resort['serviceOption'], Icons.room_service_outlined, const Color(0xFF9C6FDE), const Color(0xFFF3EDFB)),
+                          _buildInfoChip(foodStr, Icons.restaurant_menu, const Color(0xFF3E7C59), const Color(0xFFE8F3EB)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
                       Row(
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.star,
-                                  size: 14, color: Color(0xFFE5A93C)),
-                              const SizedBox(width: 3),
-                              Text(
-                                rating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A2B)),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined,
-                                size: 18, color: Color(0xFF3E7C59)),
-                            onPressed: () => _showResortFormDialog(
-                                index: index, resort: resort),
-                            tooltip: 'Edit',
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
-                          ),
-                          const SizedBox(width: 12),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline,
-                                size: 18, color: Color(0xFFE57373)),
-                            onPressed: () =>
-                                _showDeleteConfirmDialog(index),
-                            tooltip: 'Delete',
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
+                          const Icon(Icons.star, size: 16, color: Color(0xFFE5A93C)),
+                          const SizedBox(width: 4),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E3A2B)),
                           ),
                         ],
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 20, color: Color(0xFF3E7C59)),
+                        onPressed: () => _showResortFormDialog(index: index, resort: resort),
+                        tooltip: 'Edit',
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20, color: Color(0xFFE57373)),
+                        onPressed: () => _showDeleteConfirmDialog(index),
+                        tooltip: 'Delete',
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
                       ),
                     ],
                   ),
@@ -559,8 +647,18 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     );
   }
 
-  Widget _buildInfoChip(
-      String label, IconData icon, Color color, Color bg) {
+  Widget _buildDetailText(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: Colors.grey),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildInfoChip(String label, IconData icon, Color color, Color bg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -572,11 +670,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
         children: [
           Icon(icon, size: 11, color: color),
           const SizedBox(width: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: color)),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
         ],
       ),
     );
@@ -587,8 +681,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
       width: 140,
       color: const Color(0xFFE8F3EB),
       child: const Center(
-        child: Icon(Icons.villa_outlined,
-            size: 40, color: Color(0xFF3E7C59)),
+        child: Icon(Icons.villa_outlined, size: 40, color: Color(0xFF3E7C59)),
       ),
     );
   }
