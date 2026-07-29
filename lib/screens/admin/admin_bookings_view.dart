@@ -290,7 +290,10 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Booking Header with filter
-              Row(
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     'Resort Bookings',
@@ -300,7 +303,6 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
                       color: Color(0xFF1E3A2B),
                     ),
                   ),
-                  const Spacer(),
                   // Status Filter Dropdown
                   Container(
                     height: 40,
@@ -395,73 +397,110 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
   Widget _buildBookingsTable() {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: SizedBox(
+      child: Container(
         width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: DataTable(
-          headingRowColor: WidgetStateProperty.all(const Color(0xFFF7F9F6)),
-          horizontalMargin: 12,
-          columnSpacing: 20,
+          headingRowColor: WidgetStateProperty.all(Colors.white),
+          horizontalMargin: 24,
+          columnSpacing: 24,
+          dividerThickness: 0.5,
+          headingTextStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey),
+          dataRowMaxHeight: 64,
+          dataRowMinHeight: 64,
           columns: const [
-            DataColumn(label: Text('Booking ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Guest Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Resort Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Check-in Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Total Cost', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
+            DataColumn(label: Text('BOOKING ID')),
+            DataColumn(label: Text('GUEST')),
+            DataColumn(label: Text('RESORT')),
+            DataColumn(label: Text('CHECK-IN')),
+            DataColumn(label: Text('TOTAL COST')),
+            DataColumn(label: Text('STATUS')),
+            DataColumn(label: Text('ACTIONS')),
           ],
           rows: _filteredBookings.map((b) {
             final status = b['status'];
-            Color badgeColor = Colors.grey;
-            Color textColor = Colors.white;
+            Color statusColor = Colors.grey;
 
             if (status == 'Confirmed') {
-              badgeColor = const Color(0xFFE8F3EB);
-              textColor = const Color(0xFF3E7C59);
+              statusColor = const Color(0xFF3E7C59);
             } else if (status == 'Pending') {
-              badgeColor = const Color(0xFFFDF5E6);
-              textColor = const Color(0xFFE5A93C);
+              statusColor = const Color(0xFFE5A93C);
             } else if (status == 'Cancelled') {
-              badgeColor = const Color(0xFFFDECEA);
-              textColor = const Color(0xFFE57373);
+              statusColor = const Color(0xFFE57373);
             } else if (status == 'Completed') {
-              badgeColor = const Color(0xFFEEF4FC);
-              textColor = const Color(0xFF5A93E5);
+              statusColor = const Color(0xFF5A93E5);
             }
 
             final priceString = "₹${(b['amount'] as num).toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}";
 
             return DataRow(
               cells: [
-                DataCell(Text(b['id'], style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-                DataCell(Text(b['guestName'], style: const TextStyle(fontSize: 13))),
-                DataCell(Text(b['resortName'], style: const TextStyle(fontSize: 13))),
-                DataCell(Text(b['date'], style: const TextStyle(fontSize: 13))),
-                DataCell(Text(priceString, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))),
-                DataCell(Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(6),
+                DataCell(Text(b['id'], style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.black87))),
+                DataCell(
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                        child: const Icon(Icons.person_outline, size: 14, color: Colors.black54),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(b['guestName'], style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87)),
+                    ],
                   ),
-                  child: Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
+                ),
+                DataCell(Text(b['resortName'], style: const TextStyle(fontSize: 13, color: Colors.black54))),
+                DataCell(Text(b['date'], style: const TextStyle(fontSize: 13, color: Colors.black54))),
+                DataCell(Text(priceString, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87))),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: statusColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        status,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
-                )),
+                ),
                 DataCell(Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
+                      icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.black54),
                       onPressed: () => _showBookingFormDialog(index: widget.bookings.indexOf(b), booking: b),
+                      tooltip: 'Edit Booking',
+                      splashRadius: 20,
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.black54),
                       onPressed: () => _showDeleteConfirmDialog(b),
+                      tooltip: 'Delete Booking',
+                      splashRadius: 20,
                     ),
                   ],
                 )),
@@ -477,79 +516,106 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
   Widget _buildBookingsCardList() {
     return ListView.separated(
       itemCount: _filteredBookings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final b = _filteredBookings[index];
         final status = b['status'];
-        Color badgeColor = Colors.grey;
-        Color textColor = Colors.white;
+        Color statusColor = Colors.grey;
 
         if (status == 'Confirmed') {
-          badgeColor = const Color(0xFFE8F3EB);
-          textColor = const Color(0xFF3E7C59);
+          statusColor = const Color(0xFF3E7C59);
         } else if (status == 'Pending') {
-          badgeColor = const Color(0xFFFDF5E6);
-          textColor = const Color(0xFFE5A93C);
+          statusColor = const Color(0xFFE5A93C);
         } else if (status == 'Cancelled') {
-          badgeColor = const Color(0xFFFDECEA);
-          textColor = const Color(0xFFE57373);
+          statusColor = const Color(0xFFE57373);
         } else if (status == 'Completed') {
-          badgeColor = const Color(0xFFEEF4FC);
-          textColor = const Color(0xFF5A93E5);
+          statusColor = const Color(0xFF5A93E5);
         }
 
         final priceString = "₹${(b['amount'] as num).toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}";
 
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header Section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Booking ID: ${b['id']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B))),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: badgeColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      status,
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: textColor),
-                    ),
+                  Text(b['id'], style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: statusColor,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        status,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const Divider(height: 20),
-              _buildCardDetailRow('Guest', b['guestName']),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Resort', b['resortName']),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Check-in', b['date']),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Paid', priceString),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              // Body Section
+              _buildCardDetailRow(Icons.person_outline, 'Guest', b['guestName']),
+              const SizedBox(height: 8),
+              _buildCardDetailRow(Icons.business_outlined, 'Resort', b['resortName']),
+              const SizedBox(height: 8),
+              _buildCardDetailRow(Icons.calendar_today_outlined, 'Check-in', b['date']),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Cost', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+                  Text(priceString, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87)),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(height: 1, thickness: 0.5),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
-                    onPressed: () => _showBookingFormDialog(index: widget.bookings.indexOf(b), booking: b),
-                    icon: const Icon(Icons.edit_outlined, size: 14),
-                    label: const Text('Update', style: TextStyle(fontSize: 12)),
-                    style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                    onPressed: () => _showDeleteConfirmDialog(b),
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text('Delete'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black54,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   TextButton.icon(
-                    onPressed: () => _showDeleteConfirmDialog(b),
-                    icon: const Icon(Icons.delete_outline, size: 14),
-                    label: const Text('Remove', style: TextStyle(fontSize: 12)),
-                    style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                    onPressed: () => _showBookingFormDialog(index: widget.bookings.indexOf(b), booking: b),
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    label: const Text('Edit'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black87,
+                      backgroundColor: Colors.grey.withValues(alpha: 0.05),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
                 ],
               ),
@@ -560,11 +626,19 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
     );
   }
 
-  Widget _buildCardDetailRow(String label, String value) {
+  Widget _buildCardDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Text('$label: ', style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500)),
-        Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B))),
+        Icon(icon, size: 16, color: Colors.black45),
+        const SizedBox(width: 8),
+        Text('$label: ', style: const TextStyle(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.w400)),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

@@ -42,8 +42,10 @@ class OwnerDashboardView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.spaceBetween,
             children: [
               const Text(
                 'Overview of your resort performance',
@@ -58,6 +60,7 @@ class OwnerDashboardView extends StatelessWidget {
                   border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.calendar_today_outlined,
                         size: 14, color: Colors.grey),

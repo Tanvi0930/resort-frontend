@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _verifyOtp([String? autoOtp]) async {
     final phone = _phoneController.text.trim();
     final otp = autoOtp ?? _otpValue;
-    if (otp.length != 6) { AppToast.show(context, 'Please enter the 6-digit OTP', type: ToastType.warning); return; }
+    if (otp.length != 4) { AppToast.show(context, 'Please enter the 4-digit OTP', type: ToastType.warning); return; }
     setState(() => _isLoading = true);
     try {
       final verifyRes = await http.post(
@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 6),
                   Text(
                     _otpSent
-                        ? 'Enter the 6-digit code sent to +91 ${_phoneController.text.trim()}'
+                        ? 'Enter the 4-digit code sent to +91 ${_phoneController.text.trim()}'
                         : 'Sign in with your mobile number',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),

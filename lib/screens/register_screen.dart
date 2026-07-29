@@ -69,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _verifyAndRegister([String? autoOtp]) async {
     final otp = autoOtp ?? _otpValue;
     final phone = _phoneController.text.trim();
-    if (otp.length != 6) { AppToast.show(context, 'Please enter the 6-digit OTP', type: ToastType.warning); return; }
+    if (otp.length != 4) { AppToast.show(context, 'Please enter the 4-digit OTP', type: ToastType.warning); return; }
 
     setState(() => _isLoading = true);
     try {
@@ -215,7 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 6),
               Text(
                 _otpSent
-                    ? 'Enter the 6-digit code sent to +91 ${_phoneController.text.trim()}'
+                    ? 'Enter the 4-digit code sent to +91 ${_phoneController.text.trim()}'
                     : 'Join us and explore amazing resorts',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),

@@ -238,7 +238,10 @@ class _AdminUsersViewState extends State<AdminUsersView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // View Header with Search and Add buttons
-              Row(
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     'User Management',
@@ -248,7 +251,6 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                       color: Color(0xFF1E3A2B),
                     ),
                   ),
-                  const Spacer(),
                   // Search Box
                   Container(
                     width: 220,

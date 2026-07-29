@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class OwnerResortDetailsView extends StatefulWidget {
   final List<Map<String, dynamic>> resorts;
+  final List<Map<String, dynamic>> locations;
+  final bool isAdmin;
   final ValueChanged<Map<String, dynamic>> onResortAdded;
   final Function(int, Map<String, dynamic>) onResortUpdated;
   final ValueChanged<int> onResortDeleted;
@@ -9,6 +11,8 @@ class OwnerResortDetailsView extends StatefulWidget {
   const OwnerResortDetailsView({
     super.key,
     required this.resorts,
+    required this.locations,
+    this.isAdmin = false,
     required this.onResortAdded,
     required this.onResortUpdated,
     required this.onResortDeleted,
@@ -38,16 +42,13 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     final contactController = TextEditingController(text: isEditing ? resort['contactNo'] : '');
     final emailController = TextEditingController(text: isEditing ? resort['email'] : '');
     
-    String initialCity = '';
-    String initialState = '';
+    String? selectedCity;
+    String? selectedState;
     if (isEditing && resort['location'] != null) {
       final parts = resort['location'].toString().split(', ');
-      if (parts.isNotEmpty) initialCity = parts[0];
-      if (parts.length >= 2) initialState = parts[1];
+      if (parts.isNotEmpty) selectedCity = parts[0];
+      if (parts.length >= 2) selectedState = parts[1];
     }
-    
-    final cityController = TextEditingController(text: initialCity);
-    final stateController = TextEditingController(text: initialState);
 
     final roomsController = TextEditingController(text: isEditing ? '${resort['rooms'] ?? ''}' : '');
     final lockerController = TextEditingController(text: isEditing ? '${resort['lockerNo'] ?? ''}' : '');
@@ -73,6 +74,23 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final availableStates = widget.locations
+                .map((l) => l['state']?.toString().trim() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toSet()
+                .toList()
+                ..sort();
+
+            final availableCities = selectedState == null 
+                ? <String>[]
+                : widget.locations
+                    .where((l) => l['state']?.toString().trim() == selectedState?.trim())
+                    .map((l) => l['city']?.toString().trim() ?? '')
+                    .where((c) => c.isNotEmpty)
+                    .toSet()
+                    .toList()
+                    ..sort();
+
             return AlertDialog(
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
@@ -99,11 +117,54 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildFormField(stateController, 'State', Icons.map_outlined),
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              value: (selectedState != null && availableStates.contains(selectedState)) ? selectedState : null,
+                              items: availableStates.map((s) => DropdownMenuItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis))).toList(),
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  selectedState = val;
+                                  selectedCity = null;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'State',
+                                labelStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                                prefixIcon: const Icon(Icons.map_outlined, size: 18, color: Colors.grey),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3))),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3))),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF3E7C59), width: 1.5)),
+                                filled: true,
+                                fillColor: const Color(0xFFF7F9F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _buildFormField(cityController, 'City', Icons.location_city_outlined),
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              value: (selectedCity != null && availableCities.contains(selectedCity)) ? selectedCity : null,
+                              items: availableCities.isEmpty 
+                                  ? null 
+                                  : availableCities.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  selectedCity = val;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'City',
+                                labelStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                                prefixIcon: const Icon(Icons.location_city_outlined, size: 18, color: Colors.grey),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3))),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3))),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF3E7C59), width: 1.5)),
+                                filled: true,
+                                fillColor: const Color(0xFFF7F9F6),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -241,7 +302,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                       'name': nameController.text.trim(),
                       'contactNo': contactController.text.trim(),
                       'email': emailController.text.trim(),
-                      'location': [cityController.text.trim(), stateController.text.trim()].where((e) => e.isNotEmpty).join(', '),
+                      'location': [selectedCity, selectedState].where((e) => e != null && e!.isNotEmpty).join(', '),
                       'rooms': int.tryParse(roomsController.text.trim()) ?? 0,
                       'lockerNo': int.tryParse(lockerController.text.trim()) ?? 0,
                       'price': double.tryParse(priceController.text.trim()) ?? 0.0,
@@ -364,6 +425,42 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredResorts;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    final searchBar = Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => setState(() => _searchQuery = val),
+        decoration: const InputDecoration(
+          hintText: 'Search resorts by name or location...',
+          hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
+          prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+
+    final addButton = widget.isAdmin
+        ? ElevatedButton.icon(
+            onPressed: () => _showResortFormDialog(),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Resort Details'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3E7C59),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+          )
+        : const SizedBox.shrink();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -371,70 +468,45 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Row
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: Colors.grey.withValues(alpha: 0.2)),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (val) =>
-                        setState(() => _searchQuery = val),
-                    decoration: const InputDecoration(
-                      hintText: 'Search resorts by name or location...',
-                      hintStyle:
-                          TextStyle(fontSize: 13, color: Colors.grey),
-                      prefixIcon: Icon(Icons.search,
-                          size: 18, color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
+          isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    searchBar,
+                    if (widget.isAdmin) const SizedBox(height: 12),
+                    if (widget.isAdmin) addButton,
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: searchBar),
+                    if (widget.isAdmin) const SizedBox(width: 16),
+                    if (widget.isAdmin) addButton,
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: () => _showResortFormDialog(),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Resort Details'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3E7C59),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 20),
 
           // Stats Summary Row
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
             children: [
-              _buildSummaryChip(
-                  '${widget.resorts.length} Resorts',
-                  Icons.villa_outlined,
+              _buildSummaryCard(
+                  'Total Resorts',
+                  '${widget.resorts.length}',
+                  Icons.villa_rounded,
                   const Color(0xFF3E7C59),
                   const Color(0xFFE8F3EB)),
-              const SizedBox(width: 12),
-              _buildSummaryChip(
-                  '${widget.resorts.fold(0, (sum, r) => sum + ((r['rooms'] as num?) ?? 0).toInt())} Total Rooms',
-                  Icons.bed_outlined,
+              _buildSummaryCard(
+                  'Total Rooms',
+                  '${widget.resorts.fold(0, (sum, r) => sum + ((r['rooms'] as num?) ?? 0).toInt())}',
+                  Icons.bed_rounded,
                   const Color(0xFF5A93E5),
                   const Color(0xFFEBF1FC)),
-              const SizedBox(width: 12),
-              _buildSummaryChip(
-                  '${filtered.length} Shown',
-                  Icons.filter_list,
+              _buildSummaryCard(
+                  'Shown',
+                  '${filtered.length}',
+                  Icons.filter_list_rounded,
                   const Color(0xFFE5A93C),
                   const Color(0xFFFDF3E3)),
             ],
@@ -449,18 +521,18 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.villa_outlined, size: 60, color: Colors.grey),
-                    SizedBox(height: 12),
-                    Text('No resorts found',
+                    const Icon(Icons.villa_outlined, size: 60, color: Colors.grey),
+                    const SizedBox(height: 12),
+                    const Text('No resorts found',
                         style: TextStyle(
                             fontSize: 16, color: Color(0xFF1E3A2B),
                             fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    Text('Add your first resort to get started',
-                        style: TextStyle(fontSize: 13, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    Text(widget.isAdmin ? 'Add your first resort to get started' : 'You currently have no resort details to display.',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey)),
                   ],
                 ),
               ),
@@ -468,15 +540,30 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
           else
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossCount = constraints.maxWidth > 900 ? 2 : 1;
+                final isDesktop = constraints.maxWidth > 900;
+                
+                if (!isDesktop) {
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 20),
+                    itemBuilder: (context, i) {
+                      final resort = filtered[i];
+                      final originalIndex = widget.resorts.indexOf(resort);
+                      return _buildResortCard(resort, originalIndex);
+                    },
+                  );
+                }
+
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossCount,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: crossCount == 2 ? 1.7 : 2.2,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    childAspectRatio: 1.3,
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
@@ -492,24 +579,42 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     );
   }
 
-  Widget _buildSummaryChip(
-      String label, IconData icon, Color color, Color bg) {
+  Widget _buildSummaryCard(
+      String label, String value, IconData icon, Color color, Color bg) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      width: 160,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: bg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.black87)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black54)),
         ],
       ),
     );
@@ -532,117 +637,140 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     String foodStr = foodOptions.isEmpty ? 'None' : foodOptions.join(', ');
 
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        resort['name'] ?? 'Unnamed Resort',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '₹$price / pax',
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: [
+                    _buildDetailText(Icons.location_on_outlined, resort['location'] ?? ''),
+                    if ((resort['contactNo'] ?? '').isNotEmpty) _buildDetailText(Icons.phone_outlined, resort['contactNo']),
+                    if ((resort['email'] ?? '').isNotEmpty) _buildDetailText(Icons.email_outlined, resort['email']),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _buildInfoText(resort['category'] ?? 'Category', Icons.category_outlined),
+                    _buildInfoText('$rooms Rooms', Icons.bed_outlined),
+                    _buildInfoText('$lockerNo Lockers', Icons.lock_outline),
+                    if ((resort['serviceOption'] ?? '').isNotEmpty)
+                      _buildInfoText(resort['serviceOption'], Icons.room_service_outlined),
+                    _buildInfoText(foodStr, Icons.restaurant_menu),
+                  ],
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1, thickness: 0.5),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              resort['name'] ?? 'Unnamed Resort',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A2B),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            '₹$price / person',
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF3E7C59)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 4,
-                        children: [
-                          _buildDetailText(Icons.location_on, resort['location'] ?? ''),
-                          if ((resort['contactNo'] ?? '').isNotEmpty) _buildDetailText(Icons.phone, resort['contactNo']),
-                          if ((resort['email'] ?? '').isNotEmpty) _buildDetailText(Icons.email, resort['email']),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _buildInfoChip(resort['category'] ?? 'Category', Icons.category_outlined, const Color(0xFFE5A93C), const Color(0xFFFDF3E3)),
-                          _buildInfoChip('$rooms Rooms', Icons.bed_outlined, const Color(0xFF5A93E5), const Color(0xFFEBF1FC)),
-                          _buildInfoChip('$lockerNo Lockers', Icons.lock_outline, const Color(0xFFE5A93C), const Color(0xFFFDF3E3)),
-                          if ((resort['serviceOption'] ?? '').isNotEmpty)
-                            _buildInfoChip(resort['serviceOption'], Icons.room_service_outlined, const Color(0xFF9C6FDE), const Color(0xFFF3EDFB)),
-                          _buildInfoChip(foodStr, Icons.restaurant_menu, const Color(0xFF3E7C59), const Color(0xFFE8F3EB)),
-                        ],
+                      const Icon(Icons.star_rounded, size: 16, color: Color(0xFFE5A93C)),
+                      const SizedBox(width: 6),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87),
                       ),
                     ],
                   ),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 16, color: Color(0xFFE5A93C)),
-                          const SizedBox(width: 4),
-                          Text(
-                            rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A2B)),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 20, color: Color(0xFF3E7C59)),
-                        onPressed: () => _showResortFormDialog(index: index, resort: resort),
-                        tooltip: 'Edit',
-                        constraints: const BoxConstraints(),
-                        padding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20, color: Color(0xFFE57373)),
+                      TextButton.icon(
                         onPressed: () => _showDeleteConfirmDialog(index),
-                        tooltip: 'Delete',
-                        constraints: const BoxConstraints(),
-                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: const Text('Delete'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black54,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _showResortFormDialog(index: index, resort: resort),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Edit'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          backgroundColor: Colors.grey.withValues(alpha: 0.05),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -651,28 +779,21 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13, color: Colors.grey),
-        const SizedBox(width: 4),
-        Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Icon(icon, size: 14, color: Colors.black45),
+        const SizedBox(width: 6),
+        Text(text, style: const TextStyle(fontSize: 13, color: Colors.black54, fontWeight: FontWeight.w400)),
       ],
     );
   }
 
-  Widget _buildInfoChip(String label, IconData icon, Color color, Color bg) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: color),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-        ],
-      ),
+  Widget _buildInfoText(String label, IconData icon) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: Colors.black54),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black87)),
+      ],
     );
   }
 

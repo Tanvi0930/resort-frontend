@@ -438,6 +438,8 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
       case 3:
         return OwnerResortDetailsView(
           resorts: _resorts,
+          locations: _locations,
+          isAdmin: false,
           onResortAdded: _handleResortAdded,
           onResortUpdated: _handleResortUpdated,
           onResortDeleted: _handleResortDeleted,
@@ -678,7 +680,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Owner Panel',
+                    'Resort Owner',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -762,18 +764,16 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
     final isSelected = _selectedMenuIndex == index;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: Container(
-        decoration: BoxDecoration(
-          color:
-              isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: Material(
+        color: isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
         child: ListTile(
           onTap: () {
             setState(() {
               _selectedMenuIndex = index;
             });
-            if (Scaffold.of(context).isDrawerOpen) {
+            if (MediaQuery.of(context).size.width < 900) {
               Navigator.pop(context);
             }
           },

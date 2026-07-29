@@ -46,8 +46,10 @@ class AdminDashboardView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Subtitle / Date Range
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.spaceBetween,
             children: [
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,6 +68,7 @@ class AdminDashboardView extends StatelessWidget {
                   border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
                     SizedBox(width: 8),

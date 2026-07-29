@@ -574,6 +574,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       case 4:
         return OwnerResortDetailsView(
           resorts: _resorts,
+          locations: _locations,
+          isAdmin: true,
           onResortAdded: _handleResortAdded,
           onResortUpdated: _handleResortUpdated,
           onResortDeleted: _handleResortDeleted,
@@ -677,15 +679,16 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ),
       child: Row(
         children: [
-          Builder(
-            builder: (innerContext) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black87),
-              onPressed: () {
-                Scaffold.of(innerContext).openDrawer();
-              },
+          if (!isDesktop)
+            Builder(
+              builder: (innerContext) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.black87),
+                onPressed: () {
+                  Scaffold.of(innerContext).openDrawer();
+                },
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+          if (!isDesktop) const SizedBox(width: 8),
 
           // Breadcrumbs / View Name
           Text(
@@ -824,7 +827,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.adminRole == '3' ? 'Resort Owner' : 'Resort Admin',
+                    widget.adminRole == '3' ? 'Resort Owner' : 'Admin Panel',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -905,18 +908,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final isSelected = _selectedMenuIndex == index;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: Material(
+        color: isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
         child: ListTile(
           onTap: () {
             setState(() {
               _selectedMenuIndex = index;
             });
             // Close drawer if open on mobile
-            if (Scaffold.of(context).isDrawerOpen) {
+            if (MediaQuery.of(context).size.width < 900) {
               Navigator.pop(context);
             }
           },

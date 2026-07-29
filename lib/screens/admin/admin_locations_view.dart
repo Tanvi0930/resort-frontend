@@ -178,7 +178,10 @@ class _AdminLocationsViewState extends State<AdminLocationsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     'Locations Management',
@@ -188,7 +191,6 @@ class _AdminLocationsViewState extends State<AdminLocationsView> {
                       color: Color(0xFF1E3A2B),
                     ),
                   ),
-                  const Spacer(),
                   // Search Box
                   Container(
                     width: 220,

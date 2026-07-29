@@ -23,8 +23,8 @@ class OtpBoxes extends StatefulWidget {
 }
 
 class OtpBoxesState extends State<OtpBoxes> {
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
 
   int _attempts = 0;
   int _secondsLeft = 0;
@@ -37,7 +37,7 @@ class OtpBoxesState extends State<OtpBoxes> {
   void initState() {
     super.initState();
     _startTimer();
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 4; i++) {
       final idx = i;
       _focusNodes[idx].addListener(() {
         if (mounted) setState(() => _focusedIndex = _focusNodes[idx].hasFocus ? idx : (_focusedIndex == idx ? -1 : _focusedIndex));
@@ -91,21 +91,21 @@ class OtpBoxesState extends State<OtpBoxes> {
     if (value.length > 1) {
       // Paste: distribute digits across boxes
       final digits = value.replaceAll(RegExp(r'\D'), '');
-      for (int i = 0; i < 6; i++) {
+      for (int i = 0; i < 4; i++) {
         _controllers[i].text = i < digits.length ? digits[i] : '';
       }
-      final last = (digits.length - 1).clamp(0, 5);
+      final last = (digits.length - 1).clamp(0, 3);
       FocusScope.of(context).requestFocus(_focusNodes[last]);
     } else {
       // Keep only 1 digit in this box
       if (value.length > 1) _controllers[index].text = value[0];
-      if (value.isNotEmpty && index < 5) {
+      if (value.isNotEmpty && index < 3) {
         FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
       }
     }
 
     final otp = _controllers.map((c) => c.text).join();
-    if (otp.length == 6) widget.onCompleted(otp);
+    if (otp.length == 4) widget.onCompleted(otp);
   }
 
   void _onKeyEvent(KeyEvent event, int index) {
@@ -129,18 +129,18 @@ class OtpBoxesState extends State<OtpBoxes> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 6 Boxes ──
+        // ── 4 Boxes ──
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(6, (i) {
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(4, (i) {
             final isFocused = _focusedIndex == i;
             final isFilled = _controllers[i].text.isNotEmpty;
             final scale = isFocused ? 1.08 : 1.0;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOut,
+              margin: const EdgeInsets.symmetric(horizontal: 8),
               width: 44 * scale,
-              height: 52 * scale,
               child: KeyboardListener(
                 focusNode: FocusNode(),
                 onKeyEvent: (e) => _onKeyEvent(e, i),
@@ -150,9 +150,12 @@ class OtpBoxesState extends State<OtpBoxes> {
                   enabled: widget.enabled && !_isBlocked,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                  textAlignVertical: TextAlignVertical.center,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
                   decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     counterText: '',
                     filled: true,
                     fillColor: _isBlocked
