@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import 'login_screen.dart';
+import 'register_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String userId;
@@ -8,6 +10,7 @@ class MainScreen extends StatefulWidget {
   final String userPhone;
   final String userEmail;
   final String userRole;
+  final bool isGuest;
 
   const MainScreen({
     super.key,
@@ -16,6 +19,7 @@ class MainScreen extends StatefulWidget {
     required this.userPhone,
     required this.userEmail,
     this.userRole = '1',
+    this.isGuest = false,
   });
 
   @override
@@ -104,9 +108,63 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    // Guest users can browse (home, explore) but not book or view profile
+    if (widget.isGuest && (index == 1 || index == 3)) {
+      _showGuestLoginPrompt();
+      return;
+    }
+    setState(() => _selectedIndex = index);
+  }
+
+  void _showGuestLoginPrompt() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            const Icon(Icons.lock_outline, size: 40, color: Color(0xFF2E7D52)),
+            const SizedBox(height: 12),
+            const Text('Sign in Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+            const SizedBox(height: 8),
+            Text('Please sign in or create an account to make bookings and access your profile.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(context, MaterialPageRoute(
+                    builder: (_) => const LoginScreen(guestMode: true),
+                  ));
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D52), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Sign In', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
+                },
+                style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF2E7D52), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Create Account', style: TextStyle(color: Color(0xFF2E7D52), fontSize: 15, fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

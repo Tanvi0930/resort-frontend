@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'profile_options_screens.dart';
 
@@ -225,7 +226,9 @@ class ProfileScreen extends StatelessWidget {
         width: double.infinity,
         height: 56,
         child: ElevatedButton.icon(
-          onPressed: () {
+          onPressed: () async {
+            await AuthService.clearSession();
+            if (!context.mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const LoginScreen()),
