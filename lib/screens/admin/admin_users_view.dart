@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AdminUsersView extends StatefulWidget {
   final List<Map<String, dynamic>> users;
+  final List<Map<String, dynamic>> bookings; // Dynamic bookings list
   final ValueChanged<Map<String, dynamic>> onUserAdded;
   final Function(int, Map<String, dynamic>) onUserUpdated;
   final ValueChanged<int> onUserDeleted;
@@ -9,6 +10,7 @@ class AdminUsersView extends StatefulWidget {
   const AdminUsersView({
     super.key,
     required this.users,
+    required this.bookings,
     required this.onUserAdded,
     required this.onUserUpdated,
     required this.onUserDeleted,
@@ -22,6 +24,30 @@ class _AdminUsersViewState extends State<AdminUsersView> {
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
+  Widget _buildSummaryCard(String label, String count, IconData icon, Color color, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500)),
+              Text(count, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF1E2D27))),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
   List<Map<String, dynamic>> get _filteredUsers {
     if (_searchQuery.isEmpty) return widget.users;
     return widget.users.where((u) {
@@ -31,6 +57,76 @@ class _AdminUsersViewState extends State<AdminUsersView> {
       final query = _searchQuery.toLowerCase();
       return name.contains(query) || email.contains(query) || phone.contains(query);
     }).toList();
+  }
+
+  // User History Dialog containing Live Logs & Bookings
+  void _showUserHistoryDialog(Map<String, dynamic> user) {
+    // Dynamically filter bookings for the selected guest
+    final userBookings = widget.bookings
+        .where((b) => b['guestName'].toString().toLowerCase() == user['name'].toString().toLowerCase())
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Activity & Booking History: ${user['name']}',
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E2D27)),
+          ),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Booking History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(color: const Color(0xFFF7F9F6), borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.all(12),
+                    child: userBookings.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Center(child: Text('No bookings found for this user.', style: TextStyle(color: Colors.grey, fontSize: 12))),
+                          )
+                        : Column(
+                            children: userBookings.map((b) {
+                              final status = b['status'] ?? 'Pending';
+                              return ListTile(
+                                dense: true,
+                                title: Text(b['resortName'] ?? 'Resort'),
+                                subtitle: Text('Booking #${b['id']} • Amount: ₹${(b['amount'] as num).toInt()} • Date: ${b['date']}'),
+                                trailing: Chip(
+                                  label: Text(status, style: TextStyle(
+                                    color: status == 'Confirmed' || status == 'Completed' ? Colors.green : Colors.red,
+                                    fontSize: 9,
+                                  )),
+                                  backgroundColor: status == 'Confirmed' || status == 'Completed'
+                                      ? const Color(0xFFF0F4F2)
+                                      : const Color(0xFFFDECEA),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F4C43)),
+              child: const Text('Close', style: TextStyle(color: Colors.white)),
+            )
+          ],
+        );
+      },
+    );
   }
 
   // Dialog to Add or Edit User
@@ -52,7 +148,7 @@ class _AdminUsersViewState extends State<AdminUsersView> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: Text(
                 isEditing ? 'Edit User Details' : 'Add New User',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E2D27)),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -90,7 +186,7 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            initialValue: selectedUserType,
+                            value: selectedUserType,
                             decoration: const InputDecoration(labelText: 'User Type / Role'),
                             items: const [
                               DropdownMenuItem(value: '1', child: Text('1 - Regular User')),
@@ -108,9 +204,9 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            initialValue: selectedStatus,
+                            value: selectedStatus,
                             decoration: const InputDecoration(labelText: 'Status'),
-                            items: ['Active', 'Inactive'].map((s) {
+                            items: ['Active', 'Suspended'].map((s) {
                               return DropdownMenuItem(value: s, child: Text(s));
                             }).toList(),
                             onChanged: (val) {
@@ -143,13 +239,6 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                       return;
                     }
 
-                    if (phone.length != 10) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Phone number must be exactly 10 digits')),
-                      );
-                      return;
-                    }
-
                     final data = {
                       'id': isEditing ? user['id'] : 'U${widget.users.length + 1}',
                       'name': name,
@@ -161,7 +250,6 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                     };
 
                     if (isEditing) {
-                      // Find actual index in parent list
                       final originalIndex = widget.users.indexOf(user);
                       widget.onUserUpdated(originalIndex, data);
                     } else {
@@ -171,7 +259,7 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3E7C59),
+                    backgroundColor: const Color(0xFF0F4C43),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: Text(
@@ -212,6 +300,19 @@ class _AdminUsersViewState extends State<AdminUsersView> {
     );
   }
 
+  void _toggleUserSuspend(Map<String, dynamic> user) {
+    final idx = widget.users.indexOf(user);
+    if (idx != -1) {
+      final updatedUser = Map<String, dynamic>.from(user);
+      final newStatus = user['status'] == 'Active' ? 'Suspended' : 'Active';
+      updatedUser['status'] = newStatus;
+      widget.onUserUpdated(idx, updatedUser);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User status updated to $newStatus')),
+      );
+    }
+  }
+
   String _formattedToday() {
     final now = DateTime.now();
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -223,100 +324,87 @@ class _AdminUsersViewState extends State<AdminUsersView> {
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width >= 800;
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Card(
-        color: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.grey.withValues(alpha: 0.12)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // View Header with Search and Add buttons
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const Text(
-                    'User Management',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A2B),
-                    ),
-                  ),
-                  // Search Box
-                  Container(
-                    width: 220,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F5F2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'Search user...',
-                        hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
-                        prefixIcon: Icon(Icons.search, size: 16, color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onChanged: (val) {
-                        setState(() {
-                          _searchQuery = val;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Add User Button
-                  ElevatedButton.icon(
-                    onPressed: () => _showUserFormDialog(),
-                    icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                    label: const Text('Add User', style: TextStyle(fontSize: 12, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3E7C59),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 20),
+    final totalGuests = widget.users.length;
+    final activeUsers = widget.users.where((u) => u['status'] == 'Active').length;
+    final suspendedUsers = widget.users.where((u) => u['status'] == 'Suspended').length;
 
-              // Grid/List representation based on screen size
-              Expanded(
-                child: _filteredUsers.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.people_outline, size: 64, color: Colors.grey.shade300),
-                            const SizedBox(height: 12),
-                            const Text('No users found.', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
-                          ],
-                        ),
-                      )
-                    : isDesktop
-                        ? _buildUserTable()
-                        : _buildUserCardList(),
-              ),
-            ],
-          ),
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'User Management',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E2D27)),
         ),
-      ),
+        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Container(
+              width: 220,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300, width: 0.8),
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Search user...',
+                  hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, size: 16, color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              onPressed: () => _showUserFormDialog(),
+              icon: const Icon(Icons.add, size: 16, color: Colors.white),
+              label: const Text('Add User', style: TextStyle(fontSize: 12, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F4C43),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _filteredUsers.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: [
+                      Icon(Icons.people_outline, size: 64, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      const Text('No users found.', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
+              )
+            : isDesktop
+                ? _buildUserTable()
+                : _buildUserCardList(),
+      ],
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: content,
     );
   }
 
-  // --- DESKTOP DATA TABLE ---
   Widget _buildUserTable() {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -327,14 +415,13 @@ class _AdminUsersViewState extends State<AdminUsersView> {
           horizontalMargin: 12,
           columnSpacing: 20,
           columns: const [
-            DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('User Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Role', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Join Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
-            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A2B)))),
+            DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Role', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Joined', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
+            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E2D27)))),
           ],
           rows: _filteredUsers.map((u) {
             final isActive = u['status'] == 'Active';
@@ -344,7 +431,7 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                   children: [
                     const CircleAvatar(
                       radius: 12,
-                      backgroundColor: Color(0xFF3E7C59),
+                      backgroundColor: Color(0xFF0F4C43),
                       child: Icon(Icons.person, size: 12, color: Colors.white),
                     ),
                     const SizedBox(width: 8),
@@ -353,11 +440,10 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                 )),
                 DataCell(Text(u['email'], style: const TextStyle(fontSize: 13))),
                 DataCell(Text(u['phone'], style: const TextStyle(fontSize: 13))),
-                DataCell(Text(u['role'] ?? '1', style: const TextStyle(fontSize: 13))),
                 DataCell(Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getUserTypeColor(u['role']).withValues(alpha: 0.12),
+                    color: _getUserTypeColor(u['role']).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -373,7 +459,7 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                 DataCell(Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isActive ? const Color(0xFFE8F3EB) : const Color(0xFFFDECEA),
+                    color: isActive ? const Color(0xFFF0F4F2) : const Color(0xFFFDECEA),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -381,12 +467,22 @@ class _AdminUsersViewState extends State<AdminUsersView> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isActive ? const Color(0xFF3E7C59) : const Color(0xFFE57373),
+                      color: isActive ? const Color(0xFF0F4C43) : const Color(0xFFE57373),
                     ),
                   ),
                 )),
                 DataCell(Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.history_outlined, size: 18, color: Colors.blueAccent),
+                      onPressed: () => _showUserHistoryDialog(u),
+                      tooltip: 'View Booking & Activity Logs',
+                    ),
+                    IconButton(
+                      icon: Icon(isActive ? Icons.lock_outline : Icons.lock_open, size: 18, color: Colors.orangeAccent),
+                      onPressed: () => _toggleUserSuspend(u),
+                      tooltip: isActive ? 'Suspend User' : 'Activate User',
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
                       onPressed: () => _showUserFormDialog(index: widget.users.indexOf(u), user: u),
@@ -405,119 +501,160 @@ class _AdminUsersViewState extends State<AdminUsersView> {
     );
   }
 
-  // --- MOBILE CARD LIST ---
   Widget _buildUserCardList() {
     return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: _filteredUsers.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final u = _filteredUsers[index];
         final isActive = u['status'] == 'Active';
+        final statusColor = isActive ? const Color(0xFF0F4C43) : const Color(0xFFE57373);
 
         return Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Color(0xFF3E7C59),
-                    child: Icon(Icons.person, size: 14, color: Colors.white),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(u['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFFE8F3EB) : const Color(0xFFFDECEA),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      u['status'],
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isActive ? const Color(0xFF3E7C59) : const Color(0xFFE57373)),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 20),
-              _buildCardDetailRow('Email', u['email']),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Phone', u['phone']),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('User Type', u['role'] ?? '1'),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Role', _getRoleName(u['role'])),
-              const SizedBox(height: 4),
-              _buildCardDetailRow('Joined', u['joinDate']),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () => _showUserFormDialog(index: widget.users.indexOf(u), user: u),
-                    icon: const Icon(Icons.edit_outlined, size: 14),
-                    label: const Text('Edit', style: TextStyle(fontSize: 12)),
-                    style: TextButton.styleFrom(foregroundColor: Colors.grey),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: () => _showDeleteConfirmDialog(u),
-                    icon: const Icon(Icons.delete_outline, size: 14),
-                    label: const Text('Delete', style: TextStyle(fontSize: 12)),
-                    style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                  ),
-                ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.08)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: statusColor, width: 4.5),
+                ),
+              ),
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: statusColor.withOpacity(0.12),
+                        child: Icon(Icons.person, size: 16, color: statusColor),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(u['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E2D27))),
+                            const SizedBox(height: 2),
+                            Text(
+                              _getRoleName(u['role']),
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _getUserTypeColor(u['role'])),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isActive ? const Color(0xFFF0F4F2) : const Color(0xFFFDECEA),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          u['status'] ?? 'Active',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24, thickness: 0.8),
+                  _buildCardInfoRow(Icons.email_outlined, u['email']),
+                  const SizedBox(height: 8),
+                  _buildCardInfoRow(Icons.phone_outlined, u['phone']),
+                  const SizedBox(height: 8),
+                  _buildCardInfoRow(Icons.calendar_today_outlined, 'Joined: ${u['joinDate']}'),
+                  const SizedBox(height: 8),
+                  _buildCardInfoRow(Icons.security_outlined, 'Verified Account'),
+                  const Divider(height: 24, thickness: 0.8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.history_outlined, size: 18, color: Colors.blueAccent),
+                        onPressed: () => _showUserHistoryDialog(u),
+                        tooltip: 'View Booking Logs',
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: Icon(isActive ? Icons.lock_outline : Icons.lock_open, size: 18, color: Colors.orangeAccent),
+                        onPressed: () => _toggleUserSuspend(u),
+                        tooltip: isActive ? 'Suspend User' : 'Activate User',
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
+                        onPressed: () => _showUserFormDialog(index: widget.users.indexOf(u), user: u),
+                        tooltip: 'Edit Profile',
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                        onPressed: () => _showDeleteConfirmDialog(u),
+                        tooltip: 'Delete User',
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildCardDetailRow(String label, String value) {
+  Widget _buildCardInfoRow(IconData icon, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label: ', style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500)),
-        Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B))),
+        Icon(icon, size: 13, color: Colors.grey.shade500),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+          ),
+        ),
       ],
     );
   }
 
   String _getRoleName(String? type) {
     switch (type) {
-      case '1':
-        return 'Regular User';
-      case '2':
-        return 'System Admin';
-      case '3':
-        return 'Resort Owner';
-      case '4':
-        return 'Ticket Scanner';
-      default:
-        return 'Regular User';
+      case '1': return 'Regular User';
+      case '2': return 'System Admin';
+      case '3': return 'Resort Owner';
+      case '4': return 'Ticket Scanner';
+      default: return 'Regular User';
     }
   }
 
   Color _getUserTypeColor(String? type) {
     switch (type) {
-      case '1':
-        return const Color(0xFF3E7C59); // Green
-      case '2':
-        return const Color(0xFF5A93E5); // Blue
-      case '3':
-        return const Color(0xFFE5A93C); // Orange
-      case '4':
-        return const Color(0xFFE57373); // Red
-      default:
-        return Colors.grey;
+      case '1': return const Color(0xFF0F4C43);
+      case '2': return const Color(0xFF5A93E5);
+      case '3': return const Color(0xFFE5A93C);
+      case '4': return const Color(0xFFE57373);
+      default: return Colors.grey;
     }
   }
 }

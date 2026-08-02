@@ -41,7 +41,7 @@ class AppToast {
   static _ToastConfig _config(ToastType type) {
     switch (type) {
       case ToastType.success:
-        return _ToastConfig(bg: const Color(0xFFF0FDF4), icon: Icons.check_circle_outline, iconColor: const Color(0xFF2E7D52), textColor: const Color(0xFF14532D));
+        return _ToastConfig(bg: const Color(0xFFF0FDF4), icon: Icons.check_circle_outline, iconColor: const Color(0xFF0F4C43), textColor: const Color(0xFF14532D));
       case ToastType.error:
         return _ToastConfig(bg: const Color(0xFFFEF2F2), icon: Icons.error_outline, iconColor: Colors.red.shade600, textColor: Colors.red.shade800);
       case ToastType.warning:

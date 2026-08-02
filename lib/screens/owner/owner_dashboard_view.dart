@@ -70,7 +70,7 @@ class OwnerDashboardView extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E3A2B)),
+                          color: Color(0xFF1E2D27)),
                     ),
                   ],
                 ),
@@ -137,8 +137,8 @@ class OwnerDashboardView extends StatelessWidget {
         title: 'My Resorts',
         value: '$totalResorts',
         icon: Icons.villa_outlined,
-        color: const Color(0xFF3E7C59),
-        bgColor: const Color(0xFFE8F3EB),
+        color: const Color(0xFF0F4C43),
+        bgColor: const Color(0xFFF0F4F2),
         subtitle: 'Total managed resorts',
       ),
       _StatCardData(
@@ -240,17 +240,17 @@ class OwnerDashboardView extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F3EB),
+                  color: const Color(0xFFF0F4F2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.trending_up, size: 12, color: Color(0xFF3E7C59)),
+                    Icon(Icons.trending_up, size: 12, color: Color(0xFF0F4C43)),
                     SizedBox(width: 3),
                     Text('+12%',
                         style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF3E7C59),
+                            color: Color(0xFF0F4C43),
                             fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -262,13 +262,13 @@ class OwnerDashboardView extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 4),
           Text(data.title,
               style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 2),
           Text(data.subtitle,
               style: const TextStyle(fontSize: 11, color: Colors.grey)),
@@ -297,7 +297,7 @@ class OwnerDashboardView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 4),
           const Text('Monthly booking trends',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -359,12 +359,12 @@ class OwnerDashboardView extends StatelessWidget {
                       FlSpot(5, 38),
                     ],
                     isCurved: true,
-                    color: const Color(0xFF3E7C59),
+                    color: const Color(0xFF0F4C43),
                     barWidth: 3,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color(0xFF3E7C59).withValues(alpha: 0.1),
+                      color: const Color(0xFF0F4C43).withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -396,7 +396,7 @@ class OwnerDashboardView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 4),
           const Text('Bookings by status',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -411,7 +411,7 @@ class OwnerDashboardView extends StatelessWidget {
                   PieChartSectionData(
                       value: 45,
                       title: '45%',
-                      color: const Color(0xFF3E7C59),
+                      color: const Color(0xFF0F4C43),
                       radius: 50,
                       titleStyle: const TextStyle(
                           fontSize: 11,
@@ -440,7 +440,7 @@ class OwnerDashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildLegend('Confirmed', const Color(0xFF3E7C59)),
+          _buildLegend('Confirmed', const Color(0xFF0F4C43)),
           _buildLegend('Pending', const Color(0xFFE5A93C)),
           _buildLegend('Cancelled', const Color(0xFFE57373)),
         ],
@@ -459,7 +459,7 @@ class OwnerDashboardView extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 8),
           Text(label,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF1E3A2B))),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF1E2D27))),
         ],
       ),
     );
@@ -492,7 +492,7 @@ class OwnerDashboardView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 4),
           const Text('Latest guest reservations',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -508,8 +508,8 @@ class OwnerDashboardView extends StatelessWidget {
     Color statusBg;
     switch (b['status']) {
       case 'Confirmed':
-        statusColor = const Color(0xFF3E7C59);
-        statusBg = const Color(0xFFE8F3EB);
+        statusColor = const Color(0xFF0F4C43);
+        statusBg = const Color(0xFFF0F4F2);
         break;
       case 'Pending':
         statusColor = const Color(0xFFE5A93C);
@@ -526,9 +526,9 @@ class OwnerDashboardView extends StatelessWidget {
         children: [
           const CircleAvatar(
             radius: 16,
-            backgroundColor: Color(0xFFE8F3EB),
+            backgroundColor: Color(0xFFF0F4F2),
             child: Icon(Icons.person_outline,
-                size: 16, color: Color(0xFF3E7C59)),
+                size: 16, color: Color(0xFF0F4C43)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -539,7 +539,7 @@ class OwnerDashboardView extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E3A2B))),
+                        color: Color(0xFF1E2D27))),
                 Text(b['amount'],
                     style:
                         const TextStyle(fontSize: 11, color: Colors.grey)),
@@ -583,7 +583,7 @@ class OwnerDashboardView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 16),
           _buildQuickActionBtn(
               Icons.villa_outlined, 'Manage Resort Details', 4),
@@ -611,13 +611,13 @@ class OwnerDashboardView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFF3E7C59), size: 20),
+              Icon(icon, color: const Color(0xFF0F4C43), size: 20),
               const SizedBox(width: 12),
               Text(label,
                   style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF1E3A2B))),
+                      color: Color(0xFF1E2D27))),
               const Spacer(),
               const Icon(Icons.arrow_forward_ios,
                   size: 12, color: Colors.grey),
@@ -648,7 +648,7 @@ class OwnerDashboardView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A2B))),
+                  color: Color(0xFF1E2D27))),
           const SizedBox(height: 4),
           const Text('Recent actions on your account',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -683,7 +683,7 @@ class OwnerDashboardView extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF1E3A2B))),
+                        color: Color(0xFF1E2D27))),
                 const SizedBox(height: 2),
                 Text(a['time'] as String,
                     style:

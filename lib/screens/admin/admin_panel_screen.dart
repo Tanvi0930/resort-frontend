@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../api_configue.dart';
 import 'admin_dashboard_view.dart';
 import 'admin_users_view.dart';
@@ -8,6 +10,7 @@ import 'admin_locations_view.dart';
 import 'admin_bookings_view.dart';
 import '../owner/owner_resort_details_view.dart';
 import '../login_screen.dart';
+import 'admin_extra_modules_views.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   final String? adminName;
@@ -24,102 +27,83 @@ class AdminPanelScreen extends StatefulWidget {
 }
 
 class _AdminPanelScreenState extends State<AdminPanelScreen> {
-  int _selectedMenuIndex = 0; // 0 = Dashboard, 1 = Resorts/Locations, 2 = Bookings, 3 = Users
+  int _selectedMenuIndex = 0;
 
-  // In-memory Shared Data State
-  late List<Map<String, dynamic>> _resorts;
-  late List<Map<String, dynamic>> _locations;
-  late List<Map<String, dynamic>> _users;
-  late List<Map<String, dynamic>> _bookings;
-  late List<Map<String, dynamic>> _activities;
+  // Live Database States
+  List<Map<String, dynamic>> _resorts = [];
+  List<Map<String, dynamic>> _locations = [];
+  List<Map<String, dynamic>> _users = [];
+  List<Map<String, dynamic>> _bookings = [];
+  List<Map<String, dynamic>> _activities = [];
+
+  // Dynamic SharedPreferences-backed States
+  List<Map<String, dynamic>> _owners = [];
+  List<Map<String, dynamic>> _verifications = [];
+  List<Map<String, dynamic>> _coupons = [];
+  List<Map<String, dynamic>> _banners = [];
+  List<Map<String, dynamic>> _tickets = [];
+  List<Map<String, dynamic>> _auditLogs = [];
+  List<Map<String, dynamic>> _faqs = [];
+  List<Map<String, dynamic>> _notificationsOutbox = [];
+  String _termsPolicy = '1. Standard check-in time is 12:00 PM. Check-out is 11:00 AM.\n2. Guests must present valid identification documents upon arrival.';
+  String _privacyPolicy = 'We respect privacy principles. Contact information is securely kept and never shared.';
+  
+  Map<String, dynamic> _systemSettings = {
+    'commissionRate': 12.5,
+    'taxRate': 5.0,
+    'maintenanceMode': false,
+    'instantBooking': true,
+    'smsOtpLogin': true,
+    'refundWindowHours': 48.0
+  };
 
   @override
   void initState() {
     super.initState();
-    // Initialize mock data
-    _resorts = [];
-
-    _locations = [];
-
-    _users = [
-      {
-        'id': 'U1',
-        'name': 'John Doe',
-        'email': 'john.doe@example.com',
-        'phone': '9876543210',
-        'role': '1',
-        'status': 'Active',
-        'joinDate': '12 Jan 2025',
-      },
-      {
-        'id': 'U2',
-        'name': 'Emma Watson',
-        'email': 'emma.w@example.com',
-        'phone': '9876543211',
-        'role': '2',
-        'status': 'Active',
-        'joinDate': '24 Feb 2025',
-      },
-      {
-        'id': 'U3',
-        'name': 'Robert Smith',
-        'email': 'robert.s@example.com',
-        'phone': '9876543212',
-        'role': '3',
-        'status': 'Inactive',
-        'joinDate': '08 Mar 2025',
-      },
-      {
-        'id': 'U4',
-        'name': 'Olivia Brown',
-        'email': 'olivia.b@example.com',
-        'phone': '9876543213',
-        'role': '4',
-        'status': 'Active',
-        'joinDate': '15 Apr 2025',
-      },
-    ];
-
-    _bookings = [];
-
-    _activities = [
-      {
-        'title': 'New resort added: Sea Breeze Resort',
-        'time': '10:30 AM',
-        'icon': Icons.add_business_outlined,
-        'color': const Color(0xFF3E7C59),
-      },
-      {
-        'title': 'New booking received: Ocean Paradise Resort',
-        'time': '09:15 AM',
-        'icon': Icons.calendar_today_outlined,
-        'color': const Color(0xFFE5A93C),
-      },
-      {
-        'title': 'Payment received from John Doe',
-        'time': 'Yesterday',
-        'icon': Icons.payment_outlined,
-        'color': const Color(0xFF3E7C59),
-      },
-      {
-        'title': 'Review added for Green Valley Resort',
-        'time': 'Yesterday',
-        'icon': Icons.star_border,
-        'color': const Color(0xFFE5A93C),
-      },
-      {
-        'title': 'Room updated in Lake View Resort',
-        'time': '21 May 2025',
-        'icon': Icons.bed_outlined,
-        'color': const Color(0xFF5A93E5),
-      },
-    ];
+    _loadLocalData();
     _fetchUsersFromBackend();
     _fetchLocationsFromBackend();
     _fetchBookingsFromBackend();
     _fetchResortsFromBackend();
   }
 
+  // --- SharedPreferences Storage Helpers ---
+  Future<void> _loadLocalData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _verifications = _decodeList(prefs.getString('admin_verifications'));
+      _coupons = _decodeList(prefs.getString('admin_coupons'));
+      _banners = _decodeList(prefs.getString('admin_banners'));
+      _tickets = _decodeList(prefs.getString('admin_tickets'));
+      _auditLogs = _decodeList(prefs.getString('admin_audit_logs'));
+      _faqs = _decodeList(prefs.getString('admin_faqs'));
+      _notificationsOutbox = _decodeList(prefs.getString('admin_notifications_outbox'));
+      _termsPolicy = prefs.getString('admin_terms_policy') ?? _termsPolicy;
+      _privacyPolicy = prefs.getString('admin_privacy_policy') ?? _privacyPolicy;
+
+      final settingsStr = prefs.getString('admin_settings');
+      if (settingsStr != null) {
+        _systemSettings = jsonDecode(settingsStr);
+      }
+    });
+  }
+
+  List<Map<String, dynamic>> _decodeList(String? jsonStr) {
+    if (jsonStr == null) return [];
+    try {
+      final List<dynamic> decoded = jsonDecode(jsonStr);
+      return decoded.map((item) => Map<String, dynamic>.from(item)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<void> _saveLocalList(String key, List<Map<String, dynamic>> list) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, jsonEncode(list));
+  }
+
+  // --- Backend Sync Functions ---
   Future<void> _fetchResortsFromBackend() async {
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
@@ -141,6 +125,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               'imageUrl': item['imageUrl'] ?? '',
               'rating': item['rating'] ?? 4.5,
               'description': item['description'] ?? '',
+              'status': item['status'] ?? 'Approved',
               'foodDetails': {
                 'veg': item['veg'] ?? false,
                 'nonVeg': item['nonVeg'] ?? false,
@@ -149,6 +134,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               }
             };
           }).toList();
+          _updateOwnersList();
         });
       }
     } catch (e) {
@@ -220,6 +206,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               'joinDate': item['joinDate'] ?? '25 Jul 2026',
             };
           }).toList();
+          _updateOwnersList();
         });
       }
     } catch (e) {
@@ -227,25 +214,168 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  // --- Add Activity Log Helper ---
-  void _addActivityLog(String title, IconData icon, Color color) {
+  // Filter Owners from database Users where role == '3'
+  void _updateOwnersList() {
     setState(() {
-      _activities.insert(0, {
-        'title': title,
-        'time': 'Just Now',
-        'icon': icon,
-        'color': color,
+      _owners = _users.where((u) => u['role'] == '3').map((u) => {
+        'id': u['id'],
+        'name': u['name'],
+        'emailOrPhone': u['phone'],
+        'status': u['status'],
+        'joinDate': u['joinDate'],
+        'resortsCount': _resorts.where((r) => r['email'] == u['email']).length,
+        'verified': u['status'] == 'Active',
+      }).toList();
+    });
+  }
+
+  // --- Audit Log Tracker Helper ---
+  void _addAuditLog(String action) {
+    setState(() {
+      _auditLogs.insert(0, {
+        'action': action,
+        'adminName': widget.adminName ?? 'SuperAdmin',
+        'ip': '127.0.0.1',
+        'timestamp': DateTime.now().toLocal().toString().split('.')[0],
       });
-      if (_activities.length > 12) {
-        _activities.removeLast();
+      _saveLocalList('admin_audit_logs', _auditLogs);
+    });
+  }
+
+  // --- Callback Event Handlers ---
+  Future<void> _handleOwnerAction(String ownerId, String action, String value) async {
+    // Find the user entry index that corresponds to the owner id
+    final uIdx = _users.indexWhere((u) => u['id'] == ownerId);
+    if (uIdx != -1) {
+      final updatedUser = Map<String, dynamic>.from(_users[uIdx]);
+      if (action == 'verify') {
+        updatedUser['status'] = 'Active';
+      } else if (action == 'suspend') {
+        updatedUser['status'] = 'Suspended';
+      } else if (action == 'activate') {
+        updatedUser['status'] = 'Active';
+      }
+      await _handleUserUpdated(uIdx, updatedUser);
+      _addAuditLog('$action action applied to Owner ID: $ownerId');
+    }
+  }
+
+  void _handleVerificationStatus(int id, String status) {
+    setState(() {
+      final idx = _verifications.indexWhere((v) => v['id'] == id);
+      if (idx != -1) {
+        _verifications[idx]['status'] = status;
+        _saveLocalList('admin_verifications', _verifications);
+        _addAuditLog('Verification Case #$id marked as $status');
       }
     });
   }
 
-  // --- Resort State Callbacks ---
+  void _handleCouponAdded(Map<String, dynamic> coupon) {
+    setState(() {
+      _coupons.add(coupon);
+      _saveLocalList('admin_coupons', _coupons);
+      _addAuditLog('Created promotion coupon: ${coupon['code']}');
+    });
+  }
+
+  void _handleCouponDelete(int id) {
+    setState(() {
+      _coupons.removeWhere((c) => c['id'] == id);
+      _saveLocalList('admin_coupons', _coupons);
+      _addAuditLog('Deleted promotion coupon ID: $id');
+    });
+  }
+
+  void _handleBannerAdded(Map<String, dynamic> banner) {
+    setState(() {
+      _banners.add(banner);
+      _saveLocalList('admin_banners', _banners);
+      _addAuditLog('Uploaded marketing banner: ${banner['title']}');
+    });
+  }
+
+  void _handleBannerDelete(int id) {
+    setState(() {
+      _banners.removeWhere((b) => b['id'] == id);
+      _saveLocalList('admin_banners', _banners);
+      _addAuditLog('Deleted banner campaign ID: $id');
+    });
+  }
+
+  void _handleCommissionSave(double rate) {
+    setState(() {
+      _systemSettings['commissionRate'] = rate;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('admin_settings', jsonEncode(_systemSettings));
+      });
+      _addAuditLog('Commission Rate set to $rate%');
+    });
+  }
+
+  void _handleRefundResult(int refundId, bool approve) {
+    setState(() {
+      _addAuditLog('Refund decision on Case #$refundId: ${approve ? "Approved" : "Denied"}');
+    });
+  }
+
+  void _handleSendReply(int ticketId, String text) {
+    setState(() {
+      final idx = _tickets.indexWhere((t) => t['id'] == ticketId);
+      if (idx != -1) {
+        _tickets[idx]['replies'].add({'sender': 'Admin', 'text': text, 'date': 'Just Now'});
+        _saveLocalList('admin_tickets', _tickets);
+        _addAuditLog('Responded to Support ticket #$ticketId');
+      }
+    });
+  }
+
+  void _handleSaveSettings(Map<String, dynamic> settings) {
+    setState(() {
+      _systemSettings = settings;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('admin_settings', jsonEncode(_systemSettings));
+      });
+      _addAuditLog('System Configuration settings updated.');
+    });
+  }
+
+  void _handleFaqAdded(String q, String a) {
+    setState(() {
+      _faqs.add({'q': q, 'a': a});
+      _saveLocalList('admin_faqs', _faqs);
+      _addAuditLog('Added FAQ Question: $q');
+    });
+  }
+
+  void _handleSavePolicies(String terms, String privacy) {
+    setState(() {
+      _termsPolicy = terms;
+      _privacyPolicy = privacy;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('admin_terms_policy', terms);
+        prefs.setString('admin_privacy_policy', privacy);
+      });
+      _addAuditLog('CMS policies terms/privacy document updated.');
+    });
+  }
+
+  void _handleSendNotification(String title, String body, String audience) {
+    setState(() {
+      _notificationsOutbox.insert(0, {
+        'title': title,
+        'body': body,
+        'audience': audience,
+        'date': DateTime.now().toLocal().toString().split(' ')[0],
+      });
+      _saveLocalList('admin_notifications_outbox', _notificationsOutbox);
+      _addAuditLog('Broadcast announcement pushed to audience: $audience');
+    });
+  }
+
+  // --- CRUD State Callbacks ---
   Future<void> _handleResortAdded(Map<String, dynamic> resort) async {
-    _addActivityLog('New resort added: ${resort['name']}',
-        Icons.add_business_outlined, const Color(0xFF3E7C59));
+    _addAuditLog('New resort added: ${resort['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -279,8 +409,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _handleResortUpdated(int index, Map<String, dynamic> resort) async {
-    _addActivityLog('Resort updated: ${resort['name']}',
-        Icons.edit_outlined, const Color(0xFFE5A93C));
+    _addAuditLog('Resort details updated: ${resort['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.put(
@@ -315,9 +444,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   Future<void> _handleResortDeleted(int index) async {
     final rs = _resorts[index];
-    final name = rs['name'];
-    _addActivityLog(
-        'Resort deleted: $name', Icons.delete_outline, Colors.redAccent);
+    _addAuditLog('Resort deleted: ${rs['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.delete(
@@ -331,13 +458,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  // --- Users State Callbacks ---
   Future<void> _handleUserAdded(Map<String, dynamic> user) async {
-    setState(() {
-      _users.add(user);
-    });
-    _addActivityLog('New user registered: ${user['name']}', Icons.person_add_outlined, const Color(0xFF5A93E5));
-
+    _addAuditLog('New user account registered: ${user['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -345,7 +467,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'emailOrPhone': user['phone'],
-          'password': 'Password123', // default temp password
+          'password': 'Password123',
           'name': user['name'],
           'email': user['email'],
           'role': user['role'] ?? '1',
@@ -362,11 +484,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _handleUserUpdated(int index, Map<String, dynamic> user) async {
-    setState(() {
-      _users[index] = user;
-    });
-    _addActivityLog('User details updated: ${user['name']}', Icons.manage_accounts_outlined, const Color(0xFFE5A93C));
-
+    _addAuditLog('User status/details updated: ${user['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.put(
@@ -390,12 +508,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   Future<void> _handleUserDeleted(int index) async {
     final user = _users[index];
-    final name = user['name'];
-    setState(() {
-      _users.removeAt(index);
-    });
-    _addActivityLog('User account deleted: $name', Icons.person_off_outlined, Colors.redAccent);
-
+    _addAuditLog('User deleted: ${user['name']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.delete(
@@ -409,9 +522,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  // --- Locations State Callbacks ---
   Future<void> _handleLocationAdded(Map<String, dynamic> loc) async {
-    _addActivityLog('New location added: ${loc['city']}, ${loc['state']}', Icons.add_location_alt_outlined, const Color(0xFF3E7C59));
+    _addAuditLog('New city location added: ${loc['city']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -432,7 +544,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _handleLocationUpdated(int index, Map<String, dynamic> loc) async {
-    _addActivityLog('Location updated: ${loc['city']}, ${loc['state']}', Icons.edit_location_alt_outlined, const Color(0xFFE5A93C));
+    _addAuditLog('Location coordinates modified: ${loc['city']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.put(
@@ -454,8 +566,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   Future<void> _handleLocationDeleted(int index) async {
     final loc = _locations[index];
-    final city = loc['city'];
-    _addActivityLog('Location deleted: $city', Icons.wrong_location_outlined, Colors.redAccent);
+    _addAuditLog('Location city deleted: ${loc['city']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.delete(
@@ -469,9 +580,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  // --- Bookings State Callbacks ---
   Future<void> _handleBookingAdded(Map<String, dynamic> bk) async {
-    _addActivityLog('New booking created for ${bk['guestName']}', Icons.calendar_today_outlined, const Color(0xFF3E7C59));
+    _addAuditLog('Manual booking created for ${bk['guestName']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -494,7 +604,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Future<void> _handleBookingUpdated(int index, Map<String, dynamic> bk) async {
-    _addActivityLog('Booking status updated: ${bk['guestName']} (${bk['status']})', Icons.edit_calendar_outlined, const Color(0xFFE5A93C));
+    _addAuditLog('Booking details modified: Guest ${bk['guestName']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.put(
@@ -518,8 +628,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   Future<void> _handleBookingDeleted(int index) async {
     final bk = _bookings[index];
-    final guest = bk['guestName'];
-    _addActivityLog('Booking deleted: $guest', Icons.delete_sweep_outlined, Colors.redAccent);
+    _addAuditLog('Booking removed: Guest ${bk['guestName']}');
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.delete(
@@ -533,7 +642,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-  // Helper to map index to sub-view widget
+  // --- Router mapper to Subviews ---
   Widget _buildSelectedView() {
     switch (_selectedMenuIndex) {
       case 0:
@@ -567,6 +676,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       case 3:
         return AdminUsersView(
           users: _users,
+          bookings: _bookings,
           onUserAdded: _handleUserAdded,
           onUserUpdated: _handleUserUpdated,
           onUserDeleted: _handleUserDeleted,
@@ -580,365 +690,358 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           onResortUpdated: _handleResortUpdated,
           onResortDeleted: _handleResortDeleted,
         );
-      default:
-        // Mock placeholder view for other tabs
-        final title = _getMenuTitle(_selectedMenuIndex);
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.build_circle_outlined, size: 80, color: Colors.grey),
-              const SizedBox(height: 16),
-              Text(
-                '$title Panel',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
-              ),
-              const SizedBox(height: 8),
-              const Text('This management module is currently under development.', style: TextStyle(color: Colors.grey)),
-            ],
-          ),
+      case 5:
+        return AdminOwnersView(
+          owners: _owners,
+          onOwnerAction: _handleOwnerAction,
         );
+      case 6:
+        return AdminVerificationView(
+          verifications: _verifications,
+          onStatusChange: _handleVerificationStatus,
+        );
+      case 7:
+        return AdminPromotionsView(
+          coupons: _coupons,
+          banners: _banners,
+          onCouponAdded: _handleCouponAdded,
+          onCouponDelete: _handleCouponDelete,
+          onBannerAdded: _handleBannerAdded,
+          onBannerDelete: _handleBannerDelete,
+        );
+      case 8:
+        return AdminFinancialsView(
+          initialCommission: _systemSettings['commissionRate'],
+          onCommissionSave: _handleCommissionSave,
+          refunds: _bookings.where((b) => b['status'] == 'Cancelled').toList(),
+          onRefundResult: _handleRefundResult,
+        );
+      case 9:
+        return AdminContentView(
+          faqs: _faqs,
+          onAddFaq: _handleFaqAdded,
+          terms: _termsPolicy,
+          privacy: _privacyPolicy,
+          onSavePolicies: _handleSavePolicies,
+        );
+      case 10:
+        return AdminReportsView(
+          bookings: _bookings,
+        );
+      case 11:
+        return AdminSupportView(
+          tickets: _tickets,
+          onSendReply: _handleSendReply,
+        );
+      case 12:
+        return AdminNotificationsView(
+          outbox: _notificationsOutbox,
+          onSendNotification: _handleSendNotification,
+        );
+      case 13:
+        return AdminSecurityView(
+          auditLogs: _auditLogs,
+        );
+      case 14:
+        return AdminSettingsView(
+          initialSettings: _systemSettings,
+          onSaveSettings: _handleSaveSettings,
+        );
+      case 15:
+        return AdminProfileView(
+          adminName: widget.adminName ?? 'System Admin',
+          adminRole: widget.adminRole ?? '2',
+        );
+      default:
+        return const Center(child: Text('Under Development'));
     }
   }
 
   String _getMenuTitle(int index) {
-    const titles = {
+    const Map<int, String> titles = {
       0: 'Dashboard',
-      1: 'Location',
-      2: 'Booking',
-      3: 'User',
-      4: 'Resorts',
+      1: 'Locations',
+      2: 'Bookings Log',
+      3: 'Platform Users',
+      4: 'Resorts Audit',
+      5: 'Resort Owners',
+      6: 'Verification Center',
+      7: 'Promo Coupons',
+      8: 'Financial Payouts',
+      9: 'Content FAQ',
+      10: 'System Analytics',
+      11: 'Support Tickets',
+      12: 'Notification Outbox',
+      13: 'Security Matrix',
+      14: 'Platform System Settings',
+      15: 'Admin Profile',
     };
-    return titles[index] ?? 'Panel';
+    return titles[index] ?? 'Dashboard';
+  }
+
+  int _getBottomBarIndex(int selectedIndex) {
+    switch (selectedIndex) {
+      case 0: return 0;
+      case 4: return 1;
+      case 2: return 2;
+      case 3: return 3;
+      case 15: return 4;
+      default: return 0;
+    }
+  }
+
+  void _onBottomBarItemTapped(int index) {
+    int targetMenuIndex = 0;
+    switch (index) {
+      case 0: targetMenuIndex = 0; break;
+      case 1: targetMenuIndex = 4; break;
+      case 2: targetMenuIndex = 2; break;
+      case 3: targetMenuIndex = 3; break;
+      case 4: targetMenuIndex = 15; break;
+    }
+    setState(() {
+      _selectedMenuIndex = targetMenuIndex;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Check screen size to make design responsive
-    final isDesktop = MediaQuery.of(context).size.width >= 1100;
+    final width = MediaQuery.of(context).size.width;
+    final isWebShowcase = width > 500;
 
-    return Scaffold(
+    Widget mainContent = Scaffold(
       backgroundColor: const Color(0xFFF7F9F6),
-      drawer: Drawer(
-        child: SafeArea(child: _buildSidebarContents(context)),
-      ),
-      body: Row(
+      body: Column(
         children: [
-          // Sidebar on Desktop
-          if (isDesktop)
-            Container(
-              width: 260,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 10,
-                    offset: const Offset(5, 0),
-                  ),
-                ],
-              ),
-              child: SafeArea(child: _buildSidebarContents(context)),
-            ),
-
-          // Main Screen Area
+          _buildHeaderBar(context),
           Expanded(
-            child: Column(
-              children: [
-                // Top Header Bar
-                _buildHeaderBar(context, isDesktop),
-                
-                // Active Subview
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: _buildSelectedView(),
-                  ),
-                ),
-              ],
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: KeyedSubtree(
+                key: ValueKey<int>(_selectedMenuIndex),
+                child: _buildSelectedView(),
+              ),
             ),
           ),
         ],
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey.withOpacity(0.12),
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            )
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _getBottomBarIndex(_selectedMenuIndex),
+          onTap: _onBottomBarItemTapped,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: const Color(0xFF0F4C43),
+          unselectedItemColor: Colors.grey.shade500,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.villa_outlined),
+              activeIcon: Icon(Icons.villa),
+              label: 'Resorts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today_outlined),
+              activeIcon: Icon(Icons.calendar_today),
+              label: 'Bookings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline),
+              activeIcon: Icon(Icons.people),
+              label: 'Guests',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
     );
+
+    if (isWebShowcase) {
+      return Container(
+        color: const Color(0xFFECEFF1),
+        child: Center(
+          child: Container(
+            width: 420,
+            margin: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                )
+              ],
+              border: Border.all(color: Colors.grey.shade800, width: 8),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: mainContent,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return mainContent;
   }
 
-  // --- Header Layout ---
-  Widget _buildHeaderBar(BuildContext context, bool isDesktop) {
+  Widget _buildHeaderBar(BuildContext context) {
+    final showBackButton = _selectedMenuIndex != 0;
+
     return Container(
-      height: 70,
+      height: 75,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.12),
-            width: 1,
+            color: Colors.grey.withOpacity(0.08),
+            width: 1.5,
           ),
         ),
       ),
       child: Row(
         children: [
-          if (!isDesktop)
-            Builder(
-              builder: (innerContext) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
-                onPressed: () {
-                  Scaffold.of(innerContext).openDrawer();
-                },
-              ),
+          if (showBackButton) ...[
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF1E2D27)),
+              onPressed: () {
+                setState(() {
+                  _selectedMenuIndex = 0; // Go back to Dashboard home
+                });
+              },
+              tooltip: 'Back to Dashboard',
             ),
-          if (!isDesktop) const SizedBox(width: 8),
-
-          // Breadcrumbs / View Name
-          Text(
-            _selectedMenuIndex == 0 ? 'Dashboard' : _getMenuTitle(_selectedMenuIndex),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A2B),
-            ),
-          ),
-          
-          const Spacer(),
-
-          // Search Box (Mocked)
-          if (isDesktop)
+            const SizedBox(width: 8),
+          ] else ...[
             Container(
-              width: 280,
-              height: 40,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F5F2),
-                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFF0F4C43),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search here...',
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                  prefixIcon: Icon(Icons.search, size: 18, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
+              child: const Icon(Icons.villa, color: Colors.white, size: 20),
             ),
-          
-          const SizedBox(width: 20),
+            const SizedBox(width: 12),
+          ],
 
-          // Notification Bell
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
-                onPressed: () {
-                  setState(() {
-                    _selectedMenuIndex = 12; // Navigate to Notification
-                  });
-                },
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE57373),
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _getMenuTitle(_selectedMenuIndex),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1E2D27),
                   ),
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(width: 12),
-
-          // Profile Dropdown Info
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop'),
-              ),
-              const SizedBox(width: 8),
-              if (isDesktop)
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.adminName ?? 'Admin',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A2B),
-                      ),
-                    ),
-                    Text(
-                      widget.adminRole == '3' ? 'Resort Owner' : 'System Admin',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Sidebar Menu Items List ---
-  Widget _buildSidebarContents(BuildContext context) {
-    return Column(
-      children: [
-        // Sidebar Logo Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F3EB),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.eco,
-                  color: Color(0xFF3E7C59),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                if (!showBackButton) ...[
+                  const SizedBox(height: 2),
                   Text(
-                    widget.adminRole == '3' ? 'Resort Owner' : 'Admin Panel',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A2B),
-                    ),
-                  ),
-                  Text(
-                    'Welcome back, ${widget.adminName ?? 'Admin'}',
-                    style: const TextStyle(
+                    'Resort Management',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
                       fontSize: 11,
-                      color: Colors.grey,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-
-        const Divider(height: 1),
-
-        // Navigation Items
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            children: [
-              _buildSidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
-              if (widget.adminRole != '3')
-                _buildSidebarItem(3, Icons.people_outline, 'User'),
-              _buildSidebarItem(4, Icons.villa_outlined, 'Resorts'),
-              _buildSidebarItem(1, Icons.location_on_outlined, 'Location'),
-              _buildSidebarItem(2, Icons.calendar_today_outlined, 'Booking'),
-            ],
-          ),
-        ),
-
-        // Logout Button at the bottom
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Container(
-            width: double.infinity,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDECEA),
-              borderRadius: BorderRadius.circular(10),
+              ],
             ),
-            child: InkWell(
-              onTap: () {
+          ),
+          const Spacer(),
+          // Bell Icon Container
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1.5),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.notifications_none_outlined, size: 20, color: Color(0xFF1E2D27)),
+              onPressed: () {
+                setState(() => _selectedMenuIndex = 12);
+              },
+              tooltip: 'Notifications',
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Layout Indicator Grid
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1.5),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.grid_view_outlined, size: 20, color: Color(0xFF1E2D27)),
+              onPressed: () {},
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Logout Container
+          Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1.5),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.logout_outlined, size: 20, color: Colors.redAccent),
+              onPressed: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
-              borderRadius: BorderRadius.circular(10),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.logout, color: Color(0xFFE57373), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Color(0xFFE57373),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              tooltip: 'Logout',
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSidebarItem(int index, IconData icon, String title) {
-    final isSelected = _selectedMenuIndex == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: Material(
-        color: isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          onTap: () {
-            setState(() {
-              _selectedMenuIndex = index;
-            });
-            // Close drawer if open on mobile
-            if (MediaQuery.of(context).size.width < 900) {
-              Navigator.pop(context);
-            }
-          },
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          leading: Icon(
-            icon,
-            color: isSelected ? const Color(0xFF3E7C59) : Colors.grey.shade600,
-            size: 20,
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: isSelected ? const Color(0xFF1E3A2B) : Colors.grey.shade700,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              fontSize: 13.5,
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }

@@ -47,7 +47,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
         'title': 'New booking received: Ocean Paradise Resort',
         'time': '10:30 AM',
         'icon': Icons.calendar_today_outlined,
-        'color': const Color(0xFF3E7C59),
+        'color': const Color(0xFF0F4C43),
       },
       {
         'title': 'Resort details updated: Mountain View Resort',
@@ -59,7 +59,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
         'title': 'Payment received from Aryan Mehta',
         'time': 'Yesterday',
         'icon': Icons.payment_outlined,
-        'color': const Color(0xFF3E7C59),
+        'color': const Color(0xFF0F4C43),
       },
       {
         'title': 'Review added for Ocean Paradise Resort',
@@ -181,7 +181,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   // --- Resort State Callbacks ---
   Future<void> _handleResortAdded(Map<String, dynamic> resort) async {
     _addActivityLog('New resort added: ${resort['name']}',
-        Icons.add_business_outlined, const Color(0xFF3E7C59));
+        Icons.add_business_outlined, const Color(0xFF0F4C43));
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -272,7 +272,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
     _addActivityLog(
         'New location added: ${loc['city']}, ${loc['state']}',
         Icons.add_location_alt_outlined,
-        const Color(0xFF3E7C59));
+        const Color(0xFF0F4C43));
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -340,7 +340,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
     _addActivityLog(
         'New booking created for ${bk['guestName']}',
         Icons.calendar_today_outlined,
-        const Color(0xFF3E7C59));
+        const Color(0xFF0F4C43));
     try {
       final baseUrl = ApiConfigue.baseUrl.replaceAll(' ', '');
       final response = await http.post(
@@ -456,7 +456,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                   style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A2B))),
+                      color: Color(0xFF1E2D27))),
               SizedBox(height: 8),
               Text('This management module is currently under development.',
                   style: TextStyle(color: Colors.grey)),
@@ -552,7 +552,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E3A2B),
+              color: Color(0xFF1E2D27),
             ),
           ),
 
@@ -637,7 +637,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A2B),
+                        color: Color(0xFF1E2D27),
                       ),
                     ),
                     const Text(
@@ -666,12 +666,12 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F3EB),
+                  color: const Color(0xFFF0F4F2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.villa_outlined,
-                  color: Color(0xFF3E7C59),
+                  color: Color(0xFF0F4C43),
                   size: 24,
                 ),
               ),
@@ -684,7 +684,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A2B),
+                      color: Color(0xFF1E2D27),
                     ),
                   ),
                   Text(
@@ -765,7 +765,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Material(
-        color: isSelected ? const Color(0xFFE8F3EB) : Colors.transparent,
+        color: isSelected ? const Color(0xFFF0F4F2) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: ListTile(
@@ -784,7 +784,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           leading: Icon(
             icon,
             color: isSelected
-                ? const Color(0xFF3E7C59)
+                ? const Color(0xFF0F4C43)
                 : Colors.grey.shade600,
             size: 20,
           ),
@@ -792,7 +792,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
             title,
             style: TextStyle(
               color: isSelected
-                  ? const Color(0xFF1E3A2B)
+                  ? const Color(0xFF1E2D27)
                   : Colors.grey.shade700,
               fontWeight:
                   isSelected ? FontWeight.bold : FontWeight.w500,
@@ -805,7 +805,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                   width: 6,
                   height: 6,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF3E7C59),
+                    color: Color(0xFF0F4C43),
                     shape: BoxShape.circle,
                   ),
                 )

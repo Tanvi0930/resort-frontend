@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
@@ -306,83 +307,266 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: _filteredResorts.length,
                         itemBuilder: (context, index) {
                           final resort = _filteredResorts[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UserResortDetailsScreen(resortData: resort),
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image.network(
-                                    resort['imageUrl'] ?? 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
-                                    height: 150,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) => Container(
-                                      height: 150,
-                                      color: Colors.grey[300],
-                                      child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UserResortDetailsScreen(resortData: resort),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  );
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Top Image & Overlays
+                                    Stack(
                                       children: [
-                                        Text(
-                                          resort['name'] ?? 'Resort Name',
-                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                        Image.network(
+                                          resort['imageUrl'] ?? 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
+                                          height: 200,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (ctx, err, stack) => Container(
+                                            height: 200,
+                                            color: Colors.grey[200],
+                                            child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                                          ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                                            const SizedBox(width: 4),
-                                            Expanded(
-                                              child: Text(
-                                                resort['location'] ?? 'Location',
-                                                style: const TextStyle(color: Colors.grey),
-                                              ),
+                                        // Top-Left Rating overlay
+                                        Positioned(
+                                          top: 16,
+                                          left: 16,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.55),
+                                              borderRadius: BorderRadius.circular(20),
                                             ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              '\$${resort['price'] ?? 0} / user',
-                                              style: const TextStyle(
-                                                color: Color(0xFF3E7C59),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            Row(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.star, color: Colors.amber, size: 16),
+                                                const Icon(Icons.star, color: Colors.orange, size: 14),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   (resort['rating'] ?? 4.5).toString(),
-                                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                          ],
+                                          ),
+                                        ),
+                                        // Top-Right Favorite overlay
+                                        Positioned(
+                                          top: 16,
+                                          right: 16,
+                                          child: Container(
+                                            height: 36,
+                                            width: 36,
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.4),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.favorite_border,
+                                              color: Colors.white,
+                                              size: 18,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                    
+                                    Padding(
+                                      padding: const EdgeInsets.all(18.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Title
+                                          Text(
+                                            resort['name'] ?? 'Resort Name',
+                                            style: GoogleFonts.playfairDisplay(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF1E2D27),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          // Location Line
+                                          Row(
+                                            children: [
+                                              Icon(Icons.location_on_outlined, size: 16, color: Colors.grey.shade400),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  resort['location'] ?? 'Location',
+                                                  style: GoogleFonts.inter(
+                                                    color: Colors.grey.shade500,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          
+                                          // Amenities Tags Row
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: [
+                                              _buildAmenityChip('Free WiFi'),
+                                              _buildAmenityChip('Pool'),
+                                              _buildAmenityChip('Spa'),
+                                              if (resort['foodDetails']?['breakfast'] == true)
+                                                _buildAmenityChip('Breakfast Incl.'),
+                                              if (resort['foodDetails']?['veg'] == true)
+                                                _buildAmenityChip('Veg Food'),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+
+                                          // Reviews Row
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.star, color: Colors.orange, size: 16),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '${resort['rating'] ?? 4.5} ',
+                                                    style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF1E2D27)),
+                                                  ),
+                                                  Text(
+                                                    '(${resort['rating'] != null && resort['rating'] >= 4.7 ? "1,685" : "1,240"} reviews)',
+                                                    style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
+                                                  ),
+                                                ],
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFFF3E0),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.star, color: Colors.orange, size: 10),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      resort['rating'] != null && resort['rating'] >= 4.7 ? 'Excellent' : 'Very Good',
+                                                      style: GoogleFonts.inter(
+                                                        color: Colors.orange.shade800,
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          
+                                          const SizedBox(height: 12),
+                                          const Divider(color: Color(0xFFEEEEEE), height: 1),
+                                          const SizedBox(height: 12),
+
+                                          // Bottom Pricing & Book Button
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                                                    textBaseline: TextBaseline.alphabetic,
+                                                    children: [
+                                                      Text(
+                                                        '₹${resort['price'] ?? 0}',
+                                                        style: GoogleFonts.inter(
+                                                          color: const Color(0xFF1E2D27),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 22,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        'per night',
+                                                        style: GoogleFonts.inter(
+                                                          color: Colors.grey.shade500,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    'Free cancellation',
+                                                    style: GoogleFonts.inter(
+                                                      color: const Color(0xFF2E7D32),
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => UserResortDetailsScreen(resortData: resort),
+                                                    ),
+                                                  );
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF0F4C43), // Royal Emerald Button
+                                                  foregroundColor: Colors.white,
+                                                  elevation: 0,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'Book Now',
+                                                  style: GoogleFonts.inter(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
@@ -392,6 +576,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildAmenityChip(String title) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        title,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
