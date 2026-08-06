@@ -23,7 +23,7 @@ class UserResortDetailsScreen extends StatelessWidget {
     final String serviceOption = resortData['serviceOption'] ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9F5),
+      backgroundColor: const Color(0xFFFAF8F5),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -54,7 +54,7 @@ class UserResortDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
                         ),
                       ),
                       Row(
@@ -93,7 +93,7 @@ class UserResortDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const Text(
                     'Amenities & Services',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -111,7 +111,7 @@ class UserResortDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const Text(
                     'About this resort',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -148,7 +148,7 @@ class UserResortDetailsScreen extends StatelessWidget {
                 const Text('Price', style: TextStyle(color: Colors.grey)),
                 Text(
                   '\$$price / user',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF3E7C59)),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF112233)),
                 ),
               ],
             ),
@@ -162,7 +162,7 @@ class UserResortDetailsScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3E7C59),
+                backgroundColor: const Color(0xFF112233),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -179,12 +179,12 @@ class UserResortDetailsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F0EA),
+        color: const Color(0xFFEAEFF5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
-        style: const TextStyle(color: Color(0xFF3E7C59), fontSize: 12, fontWeight: FontWeight.w600),
+        style: const TextStyle(color: Color(0xFF112233), fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -200,7 +200,7 @@ class UserResortDetailsScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF3E7C59)),
+          Icon(icon, size: 16, color: const Color(0xFF112233)),
           const SizedBox(width: 6),
           Text(text, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
         ],

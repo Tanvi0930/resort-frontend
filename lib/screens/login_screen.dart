@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _otpSent = false;
   bool _isLoading = false;
 
-  static const _green = Color(0xFF2E7D52);
+  static const _green = Color(0xFF243B53);
 
   String get _baseUrl => ApiConfigue.baseUrl.replaceAll(' ', '');
 
@@ -207,9 +207,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
+                        color: const Color(0xFFEAEFF5),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFBBF7D0)),
+                        border: Border.all(color: const Color(0xFFD1DBE5)),
                       ),
                       child: Row(children: [
                         const Icon(Icons.info_outline, size: 16, color: _green),

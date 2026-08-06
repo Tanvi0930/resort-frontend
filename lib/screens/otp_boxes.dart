@@ -31,7 +31,7 @@ class OtpBoxesState extends State<OtpBoxes> {
   Timer? _timer;
   int _focusedIndex = -1;
 
-  static const _green = Color(0xFF2E7D52);
+  static const _green = Color(0xFF0F4C43);
 
   @override
   void initState() {

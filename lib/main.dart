@@ -17,7 +17,7 @@ class ResortApp extends StatelessWidget {
     return MaterialApp(
       title: 'Resort Hub',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3E7C59)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF112233)),
         useMaterial3: true,
         fontFamily: 'Inter',
       ),
@@ -74,7 +74,7 @@ class _SplashRouterState extends State<SplashRouter> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(child: CircularProgressIndicator(color: Color(0xFF2E7D52))),
+      body: Center(child: CircularProgressIndicator(color: Color(0xFF243B53))),
     );
   }
 }

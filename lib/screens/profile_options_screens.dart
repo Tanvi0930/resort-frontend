@@ -17,25 +17,25 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F7F2),
+      backgroundColor: const Color(0xFFFAF8F5),
       appBar: AppBar(
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1E3A2B),
+        foregroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: const Color(0xFF3E7C59).withOpacity(0.5)),
+            Icon(icon, size: 80, color: const Color(0xFF112233).withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
               title,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E3A2B),
+                color: Color(0xFF1A1A1A),
               ),
             ),
             const SizedBox(height: 8),
@@ -70,11 +70,11 @@ class MyProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F7F2),
+      backgroundColor: const Color(0xFFFAF8F5),
       appBar: AppBar(
         title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1E3A2B),
+        foregroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -88,7 +88,7 @@ class MyProfileScreen extends StatelessWidget {
                   children: [
                     const CircleAvatar(
                       radius: 50,
-                      backgroundColor: Color(0xFF3E7C59),
+                      backgroundColor: Color(0xFF112233),
                       child: Icon(Icons.person, size: 50, color: Colors.white),
                     ),
                     const SizedBox(height: 16),
@@ -97,7 +97,7 @@ class MyProfileScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A2B),
+                        color: Color(0xFF1A1A1A),
                       ),
                     ),
                   ],
@@ -136,7 +136,7 @@ class MyProfileScreen extends StatelessWidget {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3E7C59),
+                    backgroundColor: const Color(0xFF112233),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -169,10 +169,10 @@ class MyProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F7F2),
+              color: const Color(0xFFFAF8F5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: const Color(0xFF3E7C59)),
+            child: Icon(icon, color: const Color(0xFF112233)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -192,7 +192,7 @@ class MyProfileScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E3A2B),
+                    color: Color(0xFF1A1A1A),
                   ),
                 ),
               ],
@@ -311,7 +311,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E3A2B),
+                color: Color(0xFF1A1A1A),
               ),
             ),
             const SizedBox(height: 32),
@@ -344,7 +344,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _saveProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3E7C59),
+                  backgroundColor: const Color(0xFF112233),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
