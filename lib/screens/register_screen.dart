@@ -26,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _otpSent = false;
   bool _isLoading = false;
 
-  static const _green = Color(0xFF2E7D52);
+  static const _green = Color(0xFF243B53);
 
   String get _baseUrl => ApiConfigue.baseUrl.replaceAll(' ', '');
 
@@ -135,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B))),
+        title: const Text('Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A))),
         content: const SingleChildScrollView(
           child: Text(
             '1. Acceptance\nBy registering, you agree to these terms.\n\n'

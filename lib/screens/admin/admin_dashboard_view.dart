@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'admin_components.dart';
 
 class AdminDashboardView extends StatelessWidget {
   final List<Map<String, dynamic>> resorts;
@@ -124,14 +125,6 @@ class AdminDashboardView extends StatelessWidget {
           _buildLiveOverviewBanner(),
           const SizedBox(height: 20),
 
-          // Search & Filter Bar
-          _buildSearchBar(),
-          const SizedBox(height: 20),
-
-          // Stats Grid
-          _buildStatsGrid(isDesktop, isTablet, totalResorts, totalRooms, totalBookingsCount, displayEarnings),
-          const SizedBox(height: 24),
-
           // Quick Actions Grid
           _buildQuickActionsCard(),
           const SizedBox(height: 24),
@@ -226,71 +219,109 @@ class AdminDashboardView extends StatelessWidget {
   }
 
   // --- STATS GRID BUILDER ---
-  Widget _buildStatsGrid(bool isDesktop, bool isTablet, int totalResorts, int totalRooms, int totalBookingsCount, String displayEarnings) {
+  Widget _buildStatsGrid(bool isDesktop, bool isTablet, bool isMobile, int totalResorts, int totalRooms, int totalBookingsCount, String displayEarnings) {
+    final customersCount = users.where((u) => u['role'] == '1' || u['role'] == null).length;
+    final ownersCount = users.where((u) => u['role'] == '3').length;
+    final pendingCount = resorts.where((r) => r['status'] == 'Pending').length;
+    final activeCount = resorts.where((r) => r['status'] == 'Approved' || r['status'] == null).length;
+
     final cards = [
-      _buildStatCard(
+      AdminStatCard(
+        title: 'Total Users',
+        value: customersCount.toString(),
+        subtitle: 'Registered customers',
+        icon: Icons.people_alt_rounded,
+        iconBg: const Color(0xFFEEF2FF),
+        iconColor: const Color(0xFF4F46E5),
+        trendText: '+14%',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(3),
+      ),
+      AdminStatCard(
+        title: 'Resort Owners',
+        value: ownersCount.toString(),
+        subtitle: 'Verified property owners',
+        icon: Icons.badge_rounded,
+        iconBg: const Color(0xFFF0FDF4),
+        iconColor: const Color(0xFF166534),
+        trendText: '+8%',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(5),
+      ),
+      AdminStatCard(
         title: 'Total Resorts',
         value: totalResorts.toString(),
-        trend: '+12%',
-        isPositive: true,
-        icon: Icons.business,
-        iconColor: const Color(0xFF0F4C43),
-        bgColor: const Color(0xFFF0F4F2),
+        subtitle: 'Listed resort properties',
+        icon: Icons.holiday_village_rounded,
+        iconBg: const Color(0xFFFEF3C7),
+        iconColor: const Color(0xFFD97706),
+        trendText: '+12%',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(4),
       ),
-      _buildStatCard(
-        title: 'Active Bookings',
+      AdminStatCard(
+        title: 'Total Bookings',
         value: totalBookingsCount.toString(),
-        trend: '+8.3%',
-        isPositive: true,
-        icon: Icons.calendar_today_outlined,
-        iconColor: const Color(0xFF1E88E5),
-        bgColor: const Color(0xFFE3F2FD),
+        subtitle: 'Completed & active stays',
+        icon: Icons.book_online_rounded,
+        iconBg: const Color(0xFFE0F2FE),
+        iconColor: const Color(0xFF0284C7),
+        trendText: '+19%',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(2),
       ),
-      _buildStatCard(
-        title: 'Total Guests',
-        value: users.length.toString(),
-        trend: '+5.1%',
-        isPositive: true,
-        icon: Icons.people_outline,
-        iconColor: const Color(0xFF8E24AA),
-        bgColor: const Color(0xFFF3E5F5),
-      ),
-      _buildStatCard(
-        title: 'Revenue',
+      AdminStatCard(
+        title: 'Total Revenue',
         value: displayEarnings,
-        trend: '-2.4%',
-        isPositive: false,
-        icon: Icons.account_balance_wallet_outlined,
-        iconColor: const Color(0xFFE57373),
-        bgColor: const Color(0xFFFDECEA),
+        subtitle: 'Gross booking revenue',
+        icon: Icons.payments_rounded,
+        iconBg: const Color(0xFFECFDF5),
+        iconColor: const Color(0xFF059669),
+        trendText: '+24%',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(8),
+      ),
+      AdminStatCard(
+        title: 'Pending Approvals',
+        value: pendingCount.toString(),
+        subtitle: 'Resorts awaiting review',
+        icon: Icons.hourglass_top_rounded,
+        iconBg: const Color(0xFFFFF7ED),
+        iconColor: const Color(0xFFEA580C),
+        trendText: pendingCount > 0 ? 'Needs Action' : 'All Clear',
+        isPositiveTrend: pendingCount == 0,
+        onTap: () => onNavigate(4),
+      ),
+      AdminStatCard(
+        title: 'Active Listings',
+        value: activeCount.toString(),
+        subtitle: 'Bookable resorts',
+        icon: Icons.check_circle_rounded,
+        iconBg: const Color(0xFFF5F3FF),
+        iconColor: const Color(0xFF7C3AED),
+        trendText: 'Live',
+        isPositiveTrend: true,
+        onTap: () => onNavigate(4),
       ),
     ];
 
-    if (isDesktop) {
-      return Row(
-        children: cards.map((c) => Expanded(child: Padding(padding: const EdgeInsets.only(right: 16), child: c))).toList(),
-      );
-    } else if (isTablet) {
-      return GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.6,
-        children: cards,
-      );
-    } else {
-      return GridView.count(
-        crossAxisCount: 2,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.25,
-        children: cards,
-      );
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossCount = isDesktop ? 4 : (isTablet ? 3 : 2);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: isDesktop ? 1.6 : (isTablet ? 1.4 : 1.1),
+          ),
+          itemCount: cards.length,
+          itemBuilder: (context, index) => cards[index],
+        );
+      },
+    );
   }
 
   Widget _buildStatCard({
@@ -301,16 +332,18 @@ class AdminDashboardView extends StatelessWidget {
     required IconData icon,
     required Color iconColor,
     required Color bgColor,
+    required bool isMobile,
   }) {
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withOpacity(0.08), width: 1.5),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.08), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.015),
+            color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -324,12 +357,12 @@ class AdminDashboardView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(isMobile ? 6 : 8),
                 decoration: BoxDecoration(
                   color: bgColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: iconColor, size: 18),
+                child: Icon(icon, color: iconColor, size: isMobile ? 16 : 18),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -342,14 +375,14 @@ class AdminDashboardView extends StatelessWidget {
                   children: [
                     Icon(
                       isPositive ? Icons.trending_up : Icons.trending_down,
-                      size: 10,
+                      size: 9,
                       color: isPositive ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
                     ),
                     const SizedBox(width: 2),
                     Text(
                       trend,
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
                         color: isPositive ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
                       ),
@@ -359,16 +392,16 @@ class AdminDashboardView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isMobile ? 8 : 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 value,
                 style: GoogleFonts.inter(
-                  fontSize: 22,
+                  fontSize: isMobile ? 18 : 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E2D27),
+                  color: const Color(0xFF1A1A1A),
                 ),
               ),
               const SizedBox(height: 2),
@@ -377,7 +410,7 @@ class AdminDashboardView extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: isMobile ? 11 : 12,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey.shade500,
                 ),
@@ -1137,27 +1170,6 @@ class AdminDashboardView extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.add, color: Color(0xFF2E7D32), size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Add',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2E7D32),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

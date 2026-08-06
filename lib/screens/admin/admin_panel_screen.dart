@@ -807,40 +807,81 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final isWebShowcase = width > 500;
+    final isDesktop = width >= 900;
 
-    Widget mainContent = Scaffold(
-      backgroundColor: const Color(0xFFF7F9F6),
-      body: Column(
-        children: [
-          _buildHeaderBar(context),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: KeyedSubtree(
-                key: ValueKey<int>(_selectedMenuIndex),
-                child: _buildSelectedView(),
+    if (isDesktop) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Row(
+          children: [
+            // Left Fixed Navigation Sidebar
+            SizedBox(
+              width: 260,
+              child: _buildSidebarNavigation(),
+            ),
+
+            // Right Main Content Area
+            Expanded(
+              child: Column(
+                children: [
+                  _buildHeaderBar(context),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: KeyedSubtree(
+                        key: ValueKey<int>(_selectedMenuIndex),
+                        child: _buildSelectedView(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+          ],
+        ),
+      );
+    }
+
+    // Mobile / Narrow view
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      drawer: Drawer(
+        child: _buildSidebarNavigation(),
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        title: Text(
+          _getMenuTitle(_selectedMenuIndex),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), fontSize: 16),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Color(0xFF0F172A)),
+            onPressed: () => setState(() => _selectedMenuIndex = 12),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Color(0xFFEF4444)),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
           ),
         ],
+      ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedMenuIndex),
+          child: _buildSelectedView(),
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey.withOpacity(0.12),
-              width: 1,
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            )
-          ],
+          border: Border(top: BorderSide(color: Colors.grey.withValues(alpha: 0.12))),
         ),
         child: BottomNavigationBar(
           currentIndex: _getBottomBarIndex(_selectedMenuIndex),
@@ -848,10 +889,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           backgroundColor: Colors.white,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF0F4C43),
-          unselectedItemColor: Colors.grey.shade500,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          selectedItemColor: const Color(0xFF4F46E5),
+          unselectedItemColor: const Color(0xFF94A3B8),
+          selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 11),
+          unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 11),
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
@@ -859,13 +900,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.villa_outlined),
-              activeIcon: Icon(Icons.villa),
+              icon: Icon(Icons.holiday_village_outlined),
+              activeIcon: Icon(Icons.holiday_village),
               label: 'Resorts',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
+              icon: Icon(Icons.book_online_outlined),
+              activeIcon: Icon(Icons.book_online),
               label: 'Bookings',
             ),
             BottomNavigationBarItem(
@@ -882,35 +923,179 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ),
       ),
     );
+  }
 
-    if (isWebShowcase) {
-      return Container(
-        color: const Color(0xFFECEFF1),
-        child: Center(
-          child: Container(
-            width: 420,
-            margin: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                )
+  Widget _buildSidebarNavigation() {
+    final navItems = [
+      {'index': 0, 'label': 'Dashboard', 'icon': Icons.dashboard_rounded},
+      {'index': 4, 'label': 'Resort Management', 'icon': Icons.holiday_village_rounded},
+      {'index': 5, 'label': 'Resort Owners', 'icon': Icons.badge_rounded},
+      {'index': 3, 'label': 'User Management', 'icon': Icons.people_alt_rounded},
+      {'index': 2, 'label': 'Bookings Log', 'icon': Icons.book_online_rounded},
+      {'index': 1, 'label': 'Locations', 'icon': Icons.location_on_rounded},
+      {'index': 6, 'label': 'Verifications', 'icon': Icons.verified_user_rounded},
+      {'index': 7, 'label': 'Promotions & Coupons', 'icon': Icons.local_offer_rounded},
+      {'index': 8, 'label': 'Financial Payouts', 'icon': Icons.payments_rounded},
+      {'index': 9, 'label': 'Content & FAQ', 'icon': Icons.article_rounded},
+      {'index': 10, 'label': 'System Analytics', 'icon': Icons.insights_rounded},
+      {'index': 11, 'label': 'Support Tickets', 'icon': Icons.support_agent_rounded},
+      {'index': 12, 'label': 'Notifications', 'icon': Icons.notifications_rounded},
+      {'index': 13, 'label': 'Security Matrix', 'icon': Icons.shield_rounded},
+      {'index': 14, 'label': 'System Settings', 'icon': Icons.settings_rounded},
+      {'index': 15, 'label': 'Admin Profile', 'icon': Icons.account_circle_rounded},
+    ];
+
+    return Container(
+      color: const Color(0xFF0F172A),
+      child: Column(
+        children: [
+          // Logo Branding
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F46E5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.villa_rounded, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'RESORT HUB',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    Text(
+                      'Admin Control Center',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
               ],
-              border: Border.all(color: Colors.grey.shade800, width: 8),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: mainContent,
             ),
           ),
-        ),
-      );
-    }
+          const Divider(color: Color(0xFF1E293B), height: 1),
 
-    return mainContent;
+          // Menu List
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              itemCount: navItems.length,
+              itemBuilder: (context, i) {
+                final item = navItems[i];
+                final idx = item['index'] as int;
+                final isSelected = _selectedMenuIndex == idx;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Material(
+                    color: isSelected ? const Color(0xFF4F46E5) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() => _selectedMenuIndex = idx);
+                        if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        child: Row(
+                          children: [
+                            Icon(
+                              item['icon'] as IconData,
+                              size: 20,
+                              color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                item['label'] as String,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Bottom Admin Profile Box
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1E293B),
+              border: Border(top: BorderSide(color: Color(0xFF334155), width: 0.5)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  radius: 18,
+                  child: Text(
+                    (widget.adminName ?? 'A')[0].toUpperCase(),
+                    style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.adminName ?? 'System Admin',
+                        style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Super Administrator',
+                        style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Color(0xFFEF4444), size: 18),
+                  tooltip: 'Logout',
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHeaderBar(BuildContext context) {

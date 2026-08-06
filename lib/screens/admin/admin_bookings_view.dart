@@ -356,10 +356,6 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
                 runSpacing: 12,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text(
-                    'Resort Bookings Log',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E2D27)),
-                  ),
                   Container(
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 10),

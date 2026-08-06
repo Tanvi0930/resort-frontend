@@ -115,7 +115,7 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             Text(
               '${widget.resortData['name']}',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E3A2B)),
+               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
             ),
             const SizedBox(height: 20),
             
@@ -220,14 +220,14 @@ class _BookingScreenState extends State<BookingScreen> {
                 const Text('Total Price', style: TextStyle(color: Colors.grey)),
                 Text(
                   '\$$_totalPrice',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF3E7C59)),
+                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF112233)),
                 ),
               ],
             ),
             ElevatedButton(
               onPressed: _isSubmitting ? null : _submitBooking,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3E7C59),
+                 backgroundColor: const Color(0xFF112233),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -258,7 +258,7 @@ class _BookingScreenState extends State<BookingScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
-                color: currentValue > min ? const Color(0xFF3E7C59) : Colors.grey,
+                 color: currentValue > min ? const Color(0xFF112233) : Colors.grey,
                 onPressed: currentValue > min ? () => onChanged(currentValue - 1) : null,
               ),
               Text(
@@ -267,7 +267,7 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline),
-                color: (max == null || currentValue < max) ? const Color(0xFF3E7C59) : Colors.grey,
+                 color: (max == null || currentValue < max) ? const Color(0xFF112233) : Colors.grey,
                 onPressed: (max == null || currentValue < max) ? () => onChanged(currentValue + 1) : null,
               ),
             ],

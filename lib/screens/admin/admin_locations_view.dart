@@ -151,27 +151,26 @@ class _AdminLocationsViewState extends State<AdminLocationsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row
-            Row(
-              children: [
-                if (widget.onBack != null) ...[
+            if (widget.onBack != null) ...[
+              Row(
+                children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Color(0xFF1E2D27)),
                     onPressed: widget.onBack,
                   ),
                   const SizedBox(width: 8),
-                ],
-                Text(
-                  'Locations Management',
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E2D27),
+                  Text(
+                    'Locations Management',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E2D27),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Search input field
             Container(
