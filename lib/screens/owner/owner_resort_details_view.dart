@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../file_server_config.dart';
 
 class OwnerResortDetailsView extends StatefulWidget {
   final List<Map<String, dynamic>> resorts;
@@ -56,6 +57,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
     final serviceController = TextEditingController(text: isEditing ? resort['serviceOption'] : '');
     final ratingController = TextEditingController(text: isEditing ? '${resort['rating'] ?? ''}' : '');
     final descriptionController = TextEditingController(text: isEditing ? resort['description'] ?? '' : '');
+    final imageController = TextEditingController(text: isEditing ? (resort['imageUrl'] ?? '') : '');
 
     bool isVeg = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['veg'] ?? false : false;
     bool isNonVeg = isEditing && resort['foodDetails'] != null ? resort['foodDetails']['nonVeg'] ?? false : false;
@@ -245,6 +247,8 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                         ],
                       ),
                       const SizedBox(height: 12),
+                      _buildFormField(imageController, 'Cover Image URL', Icons.image_outlined),
+                      const SizedBox(height: 12),
 
                       TextFormField(
                         controller: descriptionController,
@@ -302,7 +306,7 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                       'name': nameController.text.trim(),
                       'contactNo': contactController.text.trim(),
                       'email': emailController.text.trim(),
-                      'location': [selectedCity, selectedState].where((e) => e != null && e!.isNotEmpty).join(', '),
+                      'location': [selectedCity, selectedState].where((e) => e != null && e.isNotEmpty).join(', '),
                       'rooms': int.tryParse(roomsController.text.trim()) ?? 0,
                       'lockerNo': int.tryParse(lockerController.text.trim()) ?? 0,
                       'price': double.tryParse(priceController.text.trim()) ?? 0.0,
@@ -321,6 +325,9 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
                         if (isCorporate) 'Corporate',
                       ].join(', '),
                       'description': descriptionController.text.trim(),
+                      'imageUrl': imageController.text.trim().isNotEmpty
+                          ? imageController.text.trim()
+                          : (isEditing ? (resort['imageUrl'] ?? '') : ''),
                     };
                     Navigator.pop(context);
                     if (isEditing) {
@@ -650,127 +657,142 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (imageUrl.isNotEmpty)
+            SizedBox(
+              height: 140,
+              width: double.infinity,
+              child: Image.network(
+                imageUrl.startsWith('http') ? imageUrl : '${FileServerConfig.fileServerUrl}/$imageUrl',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        resort['name'] ?? 'Unnamed Resort',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            resort['name'] ?? 'Unnamed Resort',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '₹$price / pax',
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87),
+                          ),
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '₹$price / pax',
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87),
-                      ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 8,
+                      children: [
+                        _buildDetailText(Icons.location_on_outlined, resort['location'] ?? ''),
+                        if ((resort['contactNo'] ?? '').isNotEmpty) _buildDetailText(Icons.phone_outlined, resort['contactNo']),
+                        if ((resort['email'] ?? '').isNotEmpty) _buildDetailText(Icons.email_outlined, resort['email']),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _buildInfoText(resort['category'] ?? 'Category', Icons.category_outlined),
+                        _buildInfoText('$rooms Rooms', Icons.bed_outlined),
+                        _buildInfoText('$lockerNo Lockers', Icons.lock_outline),
+                        if ((resort['serviceOption'] ?? '').isNotEmpty)
+                          _buildInfoText(resort['serviceOption'], Icons.room_service_outlined),
+                        _buildInfoText(foodStr, Icons.restaurant_menu),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 8,
-                  children: [
-                    _buildDetailText(Icons.location_on_outlined, resort['location'] ?? ''),
-                    if ((resort['contactNo'] ?? '').isNotEmpty) _buildDetailText(Icons.phone_outlined, resort['contactNo']),
-                    if ((resort['email'] ?? '').isNotEmpty) _buildDetailText(Icons.email_outlined, resort['email']),
-                  ],
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(height: 1, thickness: 0.5),
                 ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _buildInfoText(resort['category'] ?? 'Category', Icons.category_outlined),
-                    _buildInfoText('$rooms Rooms', Icons.bed_outlined),
-                    _buildInfoText('$lockerNo Lockers', Icons.lock_outline),
-                    if ((resort['serviceOption'] ?? '').isNotEmpty)
-                      _buildInfoText(resort['serviceOption'], Icons.room_service_outlined),
-                    _buildInfoText(foodStr, Icons.restaurant_menu),
-                  ],
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(height: 1, thickness: 0.5),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star_rounded, size: 16, color: Color(0xFFE5A93C)),
-                      const SizedBox(width: 6),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87),
-                      ),
-                    ],
-                  ),
-                  Wrap(
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      TextButton.icon(
-                        onPressed: () => _showDeleteConfirmDialog(index),
-                        icon: const Icon(Icons.delete_outline, size: 16),
-                        label: const Text('Delete'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.black54,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, size: 16, color: Color(0xFFE5A93C)),
+                          const SizedBox(width: 6),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87),
+                          ),
+                        ],
                       ),
-                      TextButton.icon(
-                        onPressed: () => _showResortFormDialog(index: index, resort: resort),
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('Edit'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.black87,
-                          backgroundColor: Colors.grey.withValues(alpha: 0.05),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => _showDeleteConfirmDialog(index),
+                            icon: const Icon(Icons.delete_outline, size: 16),
+                            label: const Text('Delete'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.black54,
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => _showResortFormDialog(index: index, resort: resort),
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: const Text('Edit'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.black87,
+                              backgroundColor: Colors.grey.withValues(alpha: 0.05),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

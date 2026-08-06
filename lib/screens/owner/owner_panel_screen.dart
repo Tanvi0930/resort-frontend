@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../api_configue.dart';
 import 'owner_dashboard_view.dart';
 import 'owner_resort_details_view.dart';
+import 'owner_resort_images_view.dart';
 import '../admin/admin_locations_view.dart';
 import '../admin/admin_bookings_view.dart';
 import '../login_screen.dart';
@@ -23,7 +24,7 @@ class OwnerPanelScreen extends StatefulWidget {
 }
 
 class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
-  // 0=Dashboard, 1=Location, 2=Bookings, 3=Resort Details
+  // 0=Dashboard, 1=Location, 2=Bookings, 3=Resort Details, 4=Resort Images
   int _selectedMenuIndex = 0;
 
   // In-memory Shared Data State
@@ -444,6 +445,12 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           onResortUpdated: _handleResortUpdated,
           onResortDeleted: _handleResortDeleted,
         );
+      case 4:
+        return OwnerResortImagesView(
+          resorts: _resorts,
+          onResortUpdated: _handleResortUpdated,
+          onRefreshResorts: _fetchResortsFromBackend,
+        );
       default:
         return const Center(
           child: Column(
@@ -472,6 +479,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
       1: 'Location',
       2: 'Bookings',
       3: 'Resort Details',
+      4: 'Resort Images',
     };
     return titles[index] ?? 'Panel';
   }
@@ -714,6 +722,8 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                   2, Icons.calendar_today_outlined, 'Bookings'),
               _buildSidebarItem(
                   3, Icons.villa_outlined, 'Resort Details'),
+              _buildSidebarItem(
+                  4, Icons.photo_library_outlined, 'Resort Images'),
             ],
           ),
         ),
