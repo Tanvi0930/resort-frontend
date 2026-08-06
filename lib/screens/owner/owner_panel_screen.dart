@@ -8,6 +8,7 @@ import 'owner_resort_images_view.dart';
 import '../admin/admin_locations_view.dart';
 import '../admin/admin_bookings_view.dart';
 import '../login_screen.dart';
+import '../../services/auth_service.dart';
 
 class OwnerPanelScreen extends StatefulWidget {
   final String? ownerName;
@@ -87,31 +88,54 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
       final response = await http.get(Uri.parse('$baseUrl/api/resorts'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          _resorts = data.map((item) {
-            return {
-              'id': (item['id'] ?? '').toString(),
-              'name': item['name'] ?? '',
-              'location': item['location'] ?? '',
-              'contactNo': item['contactNo'] ?? '',
-              'email': item['email'] ?? '',
-              'rooms': item['rooms'] ?? 0,
-              'lockerNo': item['lockerNo'] ?? 0,
-              'price': item['price'] ?? 0.0,
-              'serviceOption': item['serviceOption'] ?? '',
-              'imageUrl': item['imageUrl'] ?? '',
-              'rating': item['rating'] ?? 4.5,
-              'description': item['description'] ?? '',
-              'category': item['category'] ?? 'Family',
-              'foodDetails': {
-                'veg': item['veg'] ?? false,
-                'nonVeg': item['nonVeg'] ?? false,
-                'breakfast': item['breakfast'] ?? false,
-                'breaksnacks': item['breaksnacks'] ?? false,
-              }
-            };
+        final allResorts = data.map((item) {
+          return {
+            'id': (item['id'] ?? '').toString(),
+            'name': item['name'] ?? '',
+            'location': item['location'] ?? '',
+            'contactNo': item['contactNo'] ?? '',
+            'email': item['email'] ?? '',
+            'rooms': item['rooms'] ?? 0,
+            'lockerNo': item['lockerNo'] ?? 0,
+            'price': item['price'] ?? 0.0,
+            'serviceOption': item['serviceOption'] ?? '',
+            'imageUrl': item['imageUrl'] ?? '',
+            'rating': item['rating'] ?? 4.5,
+            'description': item['description'] ?? '',
+            'category': item['category'] ?? 'Family',
+            'foodDetails': {
+              'veg': item['veg'] ?? false,
+              'nonVeg': item['nonVeg'] ?? false,
+              'breakfast': item['breakfast'] ?? false,
+              'breaksnacks': item['breaksnacks'] ?? false,
+            }
+          };
+        }).toList();
+
+        // Strict Account-Wise Filtering for Owner Panel:
+        final String savedName = await AuthService.getSavedName();
+        final String activeOwner = savedName.isNotEmpty ? savedName.trim() : (widget.ownerName ?? '').trim();
+        List<Map<String, dynamic>> filteredResorts = allResorts;
+
+        if (activeOwner.isNotEmpty &&
+            activeOwner.toLowerCase() != 'owner' &&
+            activeOwner.toLowerCase() != 'admin') {
+          final cleanOwner = activeOwner.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+          final matched = allResorts.where((r) {
+            final cleanResort = (r['name'] ?? '').toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+            return cleanResort.contains(cleanOwner) || cleanOwner.contains(cleanResort);
           }).toList();
-        });
+
+          if (matched.isNotEmpty) {
+            filteredResorts = matched;
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _resorts = filteredResorts;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching resorts: $e');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../file_server_config.dart';
+import '../../widgets/resort_image_widget.dart';
 
 class OwnerResortDetailsView extends StatefulWidget {
   final List<Map<String, dynamic>> resorts;
@@ -599,15 +600,12 @@ class _OwnerResortDetailsViewState extends State<OwnerResortDetailsView> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-            child: imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl.startsWith('http') ? imageUrl : '${FileServerConfig.fileServerUrl}/$imageUrl',
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
-                  )
-                : _buildImagePlaceholder(),
+            child: ResortImageWidget(
+              resort: resort,
+              height: 160,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(20),

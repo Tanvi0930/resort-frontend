@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
 import '../utils/favorites_manager.dart';
+import '../widgets/resort_image_widget.dart';
 import 'user_resort_details_screen.dart';
 
 class ExploreTab extends StatefulWidget {
@@ -810,16 +811,11 @@ class _ExploreTabState extends State<ExploreTab> {
             children: [
               Stack(
                 children: [
-                  Image.network(
-                    imageUrl,
+                  ResortImageWidget(
+                    resort: Map<String, dynamic>.from(resort as Map),
                     height: 150,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) => Container(
-                      height: 150,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image, size: 40, color: Colors.grey),
-                    ),
                   ),
                   Positioned(
                     top: 10,

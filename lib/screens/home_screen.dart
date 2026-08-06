@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
 import '../utils/favorites_manager.dart';
+import '../widgets/resort_image_widget.dart';
 import 'user_resort_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -1028,20 +1029,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Left image
                     Stack(
                       children: [
-                        ClipRRect(
+                        ResortImageWidget(
+                          resort: Map<String, dynamic>.from(resort),
+                          height: 84,
+                          width: 84,
+                          fit: BoxFit.cover,
                           borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            resort['imageUrl'] ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400',
-                            height: 84,
-                            width: 84,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Image.network(
-                              'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=400',
-                              height: 84,
-                              width: 84,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
                         ),
                         Positioned(
                           bottom: 4,

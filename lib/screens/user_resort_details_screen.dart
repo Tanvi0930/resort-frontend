@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/resort_image_widget.dart';
 import 'booking_screen.dart';
 
 class UserResortDetailsScreen extends StatelessWidget {
@@ -11,7 +12,6 @@ class UserResortDetailsScreen extends StatelessWidget {
     final String name = resortData['name'] ?? 'Resort Name';
     final String location = resortData['location'] ?? 'Location';
     final double price = (resortData['price'] ?? 0).toDouble();
-    final String imageUrl = resortData['imageUrl'] ?? 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070';
     final double rating = (resortData['rating'] ?? 4.5).toDouble();
     final bool veg = resortData['veg'] ?? false;
     final bool nonVeg = resortData['nonVeg'] ?? false;
@@ -22,6 +22,10 @@ class UserResortDetailsScreen extends StatelessWidget {
     final int lockers = resortData['lockerNo'] ?? 0;
     final String serviceOption = resortData['serviceOption'] ?? '';
 
+    final Map<String, dynamic> resortMap = resortData is Map<String, dynamic> 
+        ? resortData 
+        : Map<String, dynamic>.from(resortData as Map);
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
       body: CustomScrollView(
@@ -31,13 +35,11 @@ class UserResortDetailsScreen extends StatelessWidget {
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
-                imageUrl,
+              background: ResortImageWidget(
+                resort: resortMap,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey,
-                  child: const Center(child: Icon(Icons.image, size: 50, color: Colors.white)),
-                ),
+                height: 250,
+                width: double.infinity,
               ),
             ),
           ),

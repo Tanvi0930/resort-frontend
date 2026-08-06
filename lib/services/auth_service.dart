@@ -39,6 +39,16 @@ class AuthService {
     };
   }
 
+  static Future<String> getSavedName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyName) ?? '';
+  }
+
+  static Future<String> getSavedRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRole) ?? '1';
+  }
+
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
