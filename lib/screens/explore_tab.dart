@@ -551,16 +551,11 @@ class _ExploreTabState extends State<ExploreTab> {
               // Image Container with heart icon and discount badge
               Stack(
                 children: [
-                  Image.network(
-                    imageUrl,
+                  ResortImageWidget(
+                    resort: resort is Map<String, dynamic> ? resort : Map<String, dynamic>.from(resort as Map),
                     height: 125,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) => Container(
-                      height: 125,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.image, size: 40, color: Colors.grey),
-                    ),
                   ),
 
                   // Favorite Heart Button (Top Right)

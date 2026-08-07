@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
 import '../utils/favorites_manager.dart';
+import '../widgets/resort_image_widget.dart';
 import 'user_resort_details_screen.dart';
 
 class WishlistTab extends StatefulWidget {
@@ -331,15 +332,11 @@ class _WishlistTabState extends State<WishlistTab> {
                 height: double.infinity,
                 child: Stack(
                   children: [
-                    Image.network(
-                      imageUrl,
+                    ResortImageWidget(
+                      resort: resort is Map<String, dynamic> ? resort : <String, dynamic>{'name': name, 'imageUrl': imageUrl},
                       width: 125,
                       height: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => Container(
-                        color: Colors.teal.shade50,
-                        child: const Icon(Icons.image, color: Colors.teal),
-                      ),
                     ),
                     Positioned(
                       bottom: 10,

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
 import '../widgets/qr_code_widget.dart';
+import '../widgets/resort_image_widget.dart';
 
 class BookingsTab extends StatefulWidget {
   final String userName;
@@ -277,21 +278,12 @@ class _BookingsTabState extends State<BookingsTab> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Clean Resort Thumbnail Image
-                    ClipRRect(
+                    // Dynamic Resort Image fetched from File Server / Owner Panel
+                    ResortImageWidget(
+                      resort: booking is Map<String, dynamic> ? booking : <String, dynamic>{'name': resortName, 'imageUrl': imageUrl},
+                      width: 105,
+                      height: 105,
                       borderRadius: BorderRadius.circular(14),
-                      child: Image.network(
-                        imageUrl,
-                        width: 105,
-                        height: 105,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 105,
-                          height: 105,
-                          color: const Color(0xFFF1F5F9),
-                          child: const Icon(Icons.holiday_village_rounded, color: Color(0xFF0F9D94), size: 36),
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 14),
                     // Details Column

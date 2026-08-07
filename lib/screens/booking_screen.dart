@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../api_configue.dart';
 import '../services/auth_service.dart';
 import '../widgets/qr_code_widget.dart';
+import '../widgets/resort_image_widget.dart';
 import 'main_screen.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -308,6 +309,15 @@ class _BookingScreenState extends State<BookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Resort Banner with photos from File Server / Owner Panel
+                ResortImageWidget(
+                  resort: widget.resortData is Map<String, dynamic> ? widget.resortData : <String, dynamic>{'name': resortName},
+                  height: 160,
+                  width: double.infinity,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                const SizedBox(height: 18),
+
                 // STEP 1: Select Visit Date
                 _buildSectionHeader(Icons.calendar_today_rounded, '1. Select Visit Date'),
                 const SizedBox(height: 10),
