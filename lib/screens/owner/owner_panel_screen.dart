@@ -548,7 +548,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
 
     return Container(
       height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 12),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -567,36 +567,40 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                 onPressed: () => Scaffold.of(innerContext).openDrawer(),
               ),
             ),
-          if (!isDesktop) const SizedBox(width: 8),
+          if (!isDesktop) const SizedBox(width: 4),
 
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _getMenuTitle(_selectedMenuIndex),
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getMenuTitle(_selectedMenuIndex),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: isDesktop ? 18 : 16,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
                 ),
-              ),
-              Text(
-                'Aqua Resort Management Console',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: const Color(0xFF64748B),
+                Text(
+                  isDesktop ? 'Aqua Resort Management Console' : 'Owner Console',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
-          const Spacer(),
-
-          // Search Box
-          if (isDesktop)
+          // Search Box on Desktop
+          if (isDesktop) ...[
             Container(
-              width: 260,
+              width: 240,
               height: 42,
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
@@ -613,15 +617,15 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                 ),
               ),
             ),
-
-          const SizedBox(width: 16),
+            const SizedBox(width: 12),
+          ],
 
           // Notification Bell
           Stack(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   shape: BoxShape.circle,
@@ -653,24 +657,25 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
             ],
           ),
 
-          const SizedBox(width: 16),
+          SizedBox(width: isDesktop ? 12 : 8),
 
           // Profile Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
             decoration: BoxDecoration(
               color: const Color(0xFFF0FDF9),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFF0F9D94).withValues(alpha: 0.2)),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 CircleAvatar(
-                  radius: 15,
+                  radius: 14,
                   backgroundColor: const Color(0xFF0F9D94),
                   child: Text(
                     initial,
-                    style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (isDesktop) ...[
