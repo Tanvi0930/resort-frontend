@@ -504,7 +504,6 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
       drawer: Drawer(
         child: SafeArea(child: _buildSidebarContents(context)),
       ),
-      bottomNavigationBar: isDesktop ? null : _buildMobileBottomBar(),
       body: Row(
         children: [
           // Sidebar on Desktop
@@ -537,64 +536,6 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileBottomBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F9D94).withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, -4),
-          ),
-        ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _selectedMenuIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedMenuIndex = index;
-          });
-        },
-        selectedItemColor: const Color(0xFF0F9D94),
-        unselectedItemColor: const Color(0xFF94A3B8),
-        selectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11),
-        unselectedLabelStyle: GoogleFonts.inter(fontSize: 10),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard_rounded, color: Color(0xFF0F9D94)),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on_outlined),
-            activeIcon: Icon(Icons.location_on_rounded, color: Color(0xFF0F9D94)),
-            label: 'Locations',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month_rounded, color: Color(0xFF0F9D94)),
-            label: 'Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.villa_outlined),
-            activeIcon: Icon(Icons.villa_rounded, color: Color(0xFF0F9D94)),
-            label: 'Resorts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_library_outlined),
-            activeIcon: Icon(Icons.photo_library_rounded, color: Color(0xFF0F9D94)),
-            label: 'Photos',
           ),
         ],
       ),
