@@ -14,6 +14,7 @@ class MainScreen extends StatefulWidget {
   final String userEmail;
   final String userRole;
   final bool isGuest;
+  final int initialTab;
 
   const MainScreen({
     super.key,
@@ -23,6 +24,7 @@ class MainScreen extends StatefulWidget {
     required this.userEmail,
     this.userRole = '1',
     this.isGuest = false,
+    this.initialTab = 0,
   });
 
   @override
@@ -30,11 +32,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTab;
   }
 
   Widget _buildCurrentScreen() {

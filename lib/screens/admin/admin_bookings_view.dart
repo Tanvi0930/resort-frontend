@@ -326,6 +326,123 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
     );
   }
 
+  void _showScanQrDialog() {
+    final qrController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF0F9D94)),
+            SizedBox(width: 8),
+            Text('Scan / Verify Ticket', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter or scan the Ticket Reference ID (e.g. AQ-849102 or guest name):',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: qrController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Ticket ID (e.g. AQ-849102)',
+                prefixIcon: const Icon(Icons.qr_code_2_rounded, color: Color(0xFF0F9D94)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              final query = qrController.text.trim();
+              if (query.isEmpty) return;
+              Navigator.pop(ctx);
+              _verifyTicketEntry(query);
+            },
+            icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+            label: const Text('Verify Entry', style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F9D94),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _verifyTicketEntry(String ticketIdQuery) {
+    int matchedIndex = -1;
+    Map<String, dynamic>? matchedBooking;
+
+    for (int i = 0; i < widget.bookings.length; i++) {
+      final b = widget.bookings[i];
+      final idStr = (b['id'] ?? b['bookingId'] ?? '').toString();
+      final guest = (b['guestName'] ?? '').toString();
+      if (idStr.contains(ticketIdQuery) || ticketIdQuery.contains(idStr) || guest.toLowerCase().contains(ticketIdQuery.toLowerCase())) {
+        matchedIndex = i;
+        matchedBooking = b;
+        break;
+      }
+    }
+
+    if (matchedBooking == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ticket "$ticketIdQuery" not found or invalid.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final updated = Map<String, dynamic>.from(matchedBooking);
+    updated['status'] = 'Entry Successful';
+    widget.onBookingUpdated(matchedIndex, updated);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Entry Verified!', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.verified_user_rounded, color: Color(0xFF15803D), size: 48),
+            const SizedBox(height: 12),
+            Text('Guest: ${updated['guestName']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Resort: ${updated['resortName']}'),
+            Text('Date: ${updated['date']}'),
+            Text('Visitors: ${updated['peopleCount'] ?? 1} Guests'),
+            const SizedBox(height: 12),
+            const Text('Status updated to "Entry Successful". Access Granted!', style: TextStyle(color: Color(0xFF15803D), fontWeight: FontWeight.bold)),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF15803D)),
+            child: const Text('Grant Entry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formattedToday() {
     final now = DateTime.now();
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -403,6 +520,16 @@ class _AdminBookingsViewState extends State<AdminBookingsView> {
                     label: const Text('Add Booking', style: TextStyle(fontSize: 12, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F4C43),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _showScanQrDialog,
+                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 14, color: Colors.white),
+                    label: const Text('Scan QR Ticket', style: TextStyle(fontSize: 12, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F9D94),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),

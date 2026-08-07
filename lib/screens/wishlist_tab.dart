@@ -21,60 +21,6 @@ class _WishlistTabState extends State<WishlistTab> {
   bool _isLoading = true;
   final String _selectedCategory = 'All';
 
-  final List<dynamic> _defaultMockResorts = [
-    {
-      'name': 'Azure Bay Resort',
-      'location': 'Goa, North Goa',
-      'rooms': 3,
-      'price': 12000.0,
-      'originalPrice': 15000.0,
-      'rating': 4.8,
-      'ratingCount': 312,
-      'discount': '-20% OFF',
-      'roomsLeftText': 'Only 3 left!',
-      'imageUrl': 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Beach',
-    },
-    {
-      'name': 'Sapphire Sands',
-      'location': 'Lakshadweep Islands',
-      'rooms': 2,
-      'price': 28000.0,
-      'originalPrice': 35000.0,
-      'rating': 5.0,
-      'ratingCount': 89,
-      'discount': '-20% OFF',
-      'roomsLeftText': 'Only 2 left!',
-      'imageUrl': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Luxury',
-    },
-    {
-      'name': 'The Canopy Retreat',
-      'location': 'Coorg, Karnataka',
-      'rooms': 4,
-      'price': 8500.0,
-      'originalPrice': 12000.0,
-      'rating': 4.9,
-      'ratingCount': 428,
-      'discount': '-29% OFF',
-      'roomsLeftText': 'Only 4 left!',
-      'imageUrl': 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Nature',
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -89,57 +35,28 @@ class _WishlistTabState extends State<WishlistTab> {
         fetchedResorts = json.decode(res.body) as List<dynamic>;
       }
 
-      final Set<String> nameSet = {};
-      final List<dynamic> merged = [];
-      
-      for (var r in fetchedResorts) {
-        if (r['name'] != null) {
-          nameSet.add(r['name'].toString().trim().toLowerCase());
-          merged.add(r);
-        }
-      }
-
-      for (var mock in _defaultMockResorts) {
-        if (!nameSet.contains(mock['name'].toString().trim().toLowerCase())) {
-          merged.add(mock);
-        }
-      }
-
       final favorites = await FavoritesManager.getFavorites();
 
-      if (favorites.isEmpty) {
-        await FavoritesManager.toggleFavorite('Azure Bay Resort');
-        await FavoritesManager.toggleFavorite('Sapphire Sands');
-        favorites.add('Azure Bay Resort');
-        favorites.add('Sapphire Sands');
-      }
-
-      final wishlisted = merged.where((resort) {
+      final wishlisted = fetchedResorts.where((resort) {
         return favorites.contains(resort['name']?.toString() ?? '');
       }).toList();
 
-      setState(() {
-        _wishlistedResorts = wishlisted;
-        _applyCategoryFilter();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _wishlistedResorts = wishlisted;
+          _applyCategoryFilter();
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading wishlist: $e');
-      final favorites = await FavoritesManager.getFavorites();
-      if (favorites.isEmpty) {
-        favorites.add('Azure Bay Resort');
-        favorites.add('Sapphire Sands');
+      if (mounted) {
+        setState(() {
+          _wishlistedResorts = [];
+          _applyCategoryFilter();
+          _isLoading = false;
+        });
       }
-
-      final wishlisted = _defaultMockResorts.where((resort) {
-        return favorites.contains(resort['name']?.toString() ?? '');
-      }).toList();
-
-      setState(() {
-        _wishlistedResorts = wishlisted;
-        _applyCategoryFilter();
-        _isLoading = false;
-      });
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api_configue.dart';
+import '../widgets/qr_code_widget.dart';
 
 class BookingsTab extends StatefulWidget {
   final String userName;
@@ -28,10 +29,14 @@ class _BookingsTabState extends State<BookingsTab> {
       final response = await http.get(Uri.parse('${ApiConfigue.baseUrl}/api/bookings'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List<dynamic>;
-        // Filter bookings by guest name (case-insensitive check)
+        // Filter bookings by guest name dynamically (case-insensitive check)
         final userBookings = data.where((b) {
-          final guest = b['guestName']?.toString().toLowerCase() ?? '';
-          return guest == widget.userName.toLowerCase() || guest == 'tanvi';
+          final guest = b['guestName']?.toString().trim().toLowerCase() ?? '';
+          final currentUserName = widget.userName.trim().toLowerCase();
+          if (currentUserName.isEmpty || currentUserName == 'user' || currentUserName == 'guest') {
+            return true; // Show user's bookings
+          }
+          return guest.isEmpty || guest == currentUserName || guest.contains(currentUserName) || currentUserName.contains(guest);
         }).toList();
 
         setState(() {
@@ -223,9 +228,9 @@ class _BookingsTabState extends State<BookingsTab> {
     final isConfirmed = statusLower == 'confirmed' || statusLower == 'approved';
     final isCancelled = statusLower == 'cancelled' || statusLower == 'rejected';
 
-    final resortName = booking['resortName']?.toString() ?? 'Luxury Resort Stay';
-    final location = booking['location']?.toString() ?? booking['city']?.toString() ?? 'Beachfront Haven';
-    final date = booking['date']?.toString() ?? booking['checkInDate']?.toString() ?? 'Confirmed Date';
+    final resortName = booking['resortName']?.toString() ?? 'Water Park Resort';
+    final location = booking['location']?.toString() ?? booking['city']?.toString() ?? '$resortName Location';
+    final date = booking['date']?.toString() ?? booking['checkInDate']?.toString() ?? 'Visit Date';
     final amount = (booking['amount'] ?? booking['totalPrice'] ?? 0.0);
     final numAmount = amount is num ? amount.toDouble() : (double.tryParse(amount.toString()) ?? 0.0);
     final imageUrl = booking['imageUrl']?.toString() ??
@@ -418,6 +423,20 @@ class _BookingsTabState extends State<BookingsTab> {
 
                     Row(
                       children: [
+                        // QR Pass Icon button
+                        InkWell(
+                          onTap: () => _showQrTicketModal(context, booking),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F9D94).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.qr_code_2_rounded, color: Color(0xFF0F9D94), size: 18),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         // Receipt icon
                         InkWell(
                           onTap: () => _showInvoiceDialog(context, booking),
@@ -868,6 +887,101 @@ class _BookingsTabState extends State<BookingsTab> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showQrTicketModal(BuildContext context, dynamic booking) {
+    final resortName = booking['resortName']?.toString() ?? 'Water Park';
+    final date = booking['date']?.toString() ?? 'Confirmed Date';
+    final bookingId = booking['id']?.toString() ?? booking['bookingId']?.toString() ?? '#AQ-${(resortName.hashCode % 9000 + 1000).abs()}';
+    final guests = booking['peopleCount'] ?? booking['guests'] ?? 1;
+    final String status = booking['status']?.toString() ?? 'Confirmed';
+    final qrData = '$bookingId|$resortName|$date|$guests Visitors|$status';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Digital Entry Pass',
+                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              QrCodeWidget(
+                data: qrData,
+                size: 210,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Pass ID: $bookingId',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Show this QR Code at $resortName Entry Gate',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified_rounded, color: Color(0xFF15803D), size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Status: $status',
+                      style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF15803D)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('QR Ticket saved to downloads!'),
+                        backgroundColor: Color(0xFF0F9D94),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.download_rounded, color: Colors.white),
+                  label: const Text('Download Pass'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F9D94),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

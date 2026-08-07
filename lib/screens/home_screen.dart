@@ -34,105 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int _bannerIndex = 0;
   List<String> _wishlistedResorts = [];
 
-  // Banner properties
+  // Banner properties dynamically rendered
   final List<Map<String, dynamic>> _banners = [
     {
-      'title': 'Mountain Serenity',
-      'subtitle': 'Weekend getaways from ₹3,999',
-      'image': 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=2070',
-      'price': 3999,
-    },
-    {
-      'title': 'The Canopy Retreat',
-      'subtitle': 'Curated forest stays from ₹8,500',
+      'title': 'Featured Water Parks & Resorts',
+      'subtitle': 'Book direct with verified resort owners',
       'image': 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
-      'price': 8500,
+      'price': 699,
     },
-    {
-      'title': 'Azure Bay Resort',
-      'subtitle': 'Sandy beach getaways from ₹12,000',
-      'image': 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2070',
-      'price': 12000,
-    }
-  ];
-
-  // Mock resorts representing screenshot properties in case the DB is sparse
-  final List<dynamic> _fallbackMockResorts = [
-    {
-      'name': 'The Canopy Retreat',
-      'location': 'Coorg, Karnataka',
-      'rooms': 6,
-      'price': 8500.0,
-      'rating': 4.9,
-      'imageUrl': 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Nature',
-      'ratingCount': 428,
-      'discount': '-29%',
-    },
-    {
-      'name': 'Azure Bay Resort',
-      'location': 'Goa, North Goa',
-      'rooms': 3,
-      'price': 12000.0,
-      'rating': 4.8,
-      'imageUrl': 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Beach',
-      'ratingCount': 312,
-      'discount': '-20%',
-    },
-    {
-      'name': 'The Misty Pines',
-      'location': 'Manali, Himachal Pradesh',
-      'rooms': 8,
-      'price': 6200.0,
-      'rating': 4.7,
-      'imageUrl': 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=2070',
-      'veg': true,
-      'nonVeg': false,
-      'breakfast': true,
-      'breaksnacks': false,
-      'category': 'Mountain',
-      'ratingCount': 195,
-      'discount': '-15%',
-    },
-    {
-      'name': 'Sapphire Sands',
-      'location': 'Kovalam, Kerala',
-      'rooms': 5,
-      'price': 28000.0,
-      'rating': 4.9,
-      'imageUrl': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Luxury',
-      'ratingCount': 512,
-      'discount': '-10%',
-    },
-    {
-      'name': 'Mountain Serenity',
-      'location': 'Bengaluru, Karnataka',
-      'rooms': 4,
-      'price': 3999.0,
-      'rating': 4.6,
-      'imageUrl': 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': false,
-      'breaksnacks': true,
-      'category': 'Mountain',
-      'ratingCount': 88,
-      'discount': '-5%',
-    }
   ];
 
   @override
@@ -235,12 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      for (var mock in _fallbackMockResorts) {
-        if (!nameSet.contains(mock['name'].toString().trim().toLowerCase())) {
-          mergedResorts.add(mock);
-        }
-      }
-
       final Set<String> stateSet = {};
       for (var loc in fetchedLocs) {
         if (loc['state'] != null) {
@@ -296,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final List<String> fallbackStates = ['Karnataka', 'Goa', 'Himachal Pradesh', 'Kerala'];
       final List<String> fallbackCities = ['Bengaluru', 'Coorg'];
       setState(() {
-        _allResorts = _fallbackMockResorts;
+        _allResorts = [];
         _states = fallbackStates;
         _cities = fallbackCities;
         _selectedState = 'Karnataka';
@@ -887,7 +790,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           // Find this resort and navigate to details
                           final matching = _allResorts.firstWhere(
                             (r) => r['name'].toString().toLowerCase().contains(banner['title'].toString().toLowerCase()),
-                            orElse: () => _fallbackMockResorts.first,
+                            orElse: () => _allResorts.isNotEmpty ? _allResorts.first : <String, dynamic>{'name': 'Water Park', 'price': 699.0, 'location': 'Water Park'},
                           );
                           Navigator.push(
                             context,

@@ -44,38 +44,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
 
     _bookings = [];
 
-    _activities = [
-      {
-        'title': 'New booking received: Ocean Paradise Resort',
-        'time': '10:30 AM',
-        'icon': Icons.calendar_today_outlined,
-        'color': const Color(0xFF0F4C43),
-      },
-      {
-        'title': 'Resort details updated: Mountain View Resort',
-        'time': '09:15 AM',
-        'icon': Icons.edit_outlined,
-        'color': const Color(0xFFE5A93C),
-      },
-      {
-        'title': 'Payment received from Aryan Mehta',
-        'time': 'Yesterday',
-        'icon': Icons.payment_outlined,
-        'color': const Color(0xFF0F4C43),
-      },
-      {
-        'title': 'Review added for Ocean Paradise Resort',
-        'time': 'Yesterday',
-        'icon': Icons.star_border,
-        'color': const Color(0xFFE5A93C),
-      },
-      {
-        'title': 'Room availability updated',
-        'time': '21 May 2025',
-        'icon': Icons.bed_outlined,
-        'color': const Color(0xFF5A93E5),
-      },
-    ];
+    _activities = [];
 
     _fetchLocationsFromBackend();
     _fetchResortsFromBackend();
@@ -148,18 +117,35 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
       final response = await http.get(Uri.parse('$baseUrl/api/bookings'));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          _bookings = data.map((item) {
-            return {
-              'id': (item['id'] ?? '').toString(),
-              'resortName': item['resortName'] ?? '',
-              'guestName': item['guestName'] ?? '',
-              'date': item['date'] ?? '',
-              'status': item['status'] ?? 'Pending',
-              'amount': item['amount'] ?? 0.0,
-            };
-          }).toList();
-        });
+        final List<Map<String, dynamic>> parsedBookings = data.map((item) {
+          return {
+            'id': (item['id'] ?? '').toString(),
+            'resortName': item['resortName'] ?? '',
+            'guestName': item['guestName'] ?? '',
+            'date': item['date'] ?? '',
+            'status': item['status'] ?? 'Pending',
+            'amount': item['amount'] ?? 0.0,
+          };
+        }).toList();
+
+        final List<Map<String, dynamic>> dynamicActivities = [];
+        for (var b in parsedBookings) {
+          final guest = (b['guestName'] ?? '').toString().isNotEmpty ? b['guestName'] : 'Guest';
+          final resort = (b['resortName'] ?? '').toString().isNotEmpty ? b['resortName'] : 'Resort';
+          dynamicActivities.add({
+            'title': 'New booking: $resort ($guest)',
+            'time': b['date'] ?? 'Recent',
+            'icon': Icons.calendar_today_outlined,
+            'color': const Color(0xFF0F4C43),
+          });
+        }
+
+        if (mounted) {
+          setState(() {
+            _bookings = parsedBookings;
+            _activities = dynamicActivities;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching bookings: $e');

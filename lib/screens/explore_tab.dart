@@ -26,83 +26,7 @@ class _ExploreTabState extends State<ExploreTab> {
   String _searchQuery = '';
   bool _isGridView = true;
 
-  final List<dynamic> _fallbackMockResorts = [
-    {
-      'name': 'The Canopy Retreat',
-      'location': 'Coorg, Karnataka',
-      'rooms': 6,
-      'price': 8500.0,
-      'rating': 4.9,
-      'imageUrl': 'https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Nature',
-      'ratingCount': 428,
-      'discount': '-29%',
-    },
-    {
-      'name': 'Azure Bay Resort',
-      'location': 'Goa, North Goa',
-      'rooms': 3,
-      'price': 12000.0,
-      'rating': 4.8,
-      'imageUrl': 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Beach',
-      'ratingCount': 312,
-      'discount': '-20%',
-    },
-    {
-      'name': 'The Misty Pines',
-      'location': 'Munnar, Kerala',
-      'rooms': 8,
-      'price': 6200.0,
-      'rating': 4.7,
-      'imageUrl': 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=2070',
-      'veg': true,
-      'nonVeg': false,
-      'breakfast': true,
-      'breaksnacks': false,
-      'category': 'Mountain',
-      'ratingCount': 195,
-      'discount': '-27%',
-    },
-    {
-      'name': 'Sapphire Sands',
-      'location': 'Lakshadweep Islands',
-      'rooms': 5,
-      'price': 28000.0,
-      'rating': 5.0,
-      'imageUrl': 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': true,
-      'breaksnacks': true,
-      'category': 'Luxury',
-      'ratingCount': 512,
-      'discount': '-20%',
-    },
-    {
-      'name': 'Mountain Serenity',
-      'location': 'Bengaluru, Karnataka',
-      'rooms': 4,
-      'price': 3999.0,
-      'rating': 4.6,
-      'imageUrl': 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=2070',
-      'veg': true,
-      'nonVeg': true,
-      'breakfast': false,
-      'breaksnacks': true,
-      'category': 'Mountain',
-      'ratingCount': 88,
-      'discount': '-5%',
-    }
-  ];
+
 
   @override
   void initState() {
@@ -145,31 +69,15 @@ class _ExploreTabState extends State<ExploreTab> {
         fetchedResorts = json.decode(res.body) as List<dynamic>;
       }
 
-      final Set<String> nameSet = {};
-      final List<dynamic> merged = [];
-      
-      for (var r in fetchedResorts) {
-        if (r['name'] != null) {
-          nameSet.add(r['name'].toString().trim().toLowerCase());
-          merged.add(r);
-        }
-      }
-
-      for (var mock in _fallbackMockResorts) {
-        if (!nameSet.contains(mock['name'].toString().trim().toLowerCase())) {
-          merged.add(mock);
-        }
-      }
-
       setState(() {
-        _allResorts = merged;
+        _allResorts = fetchedResorts;
         _isLoading = false;
         _applyFilters();
       });
     } catch (e) {
       debugPrint('Error loading resorts: $e');
       setState(() {
-        _allResorts = _fallbackMockResorts;
+        _allResorts = [];
         _isLoading = false;
         _applyFilters();
       });
