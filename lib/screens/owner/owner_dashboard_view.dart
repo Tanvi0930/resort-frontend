@@ -178,33 +178,15 @@ class OwnerDashboardView extends StatelessWidget {
                 )))
             .toList(),
       );
-    } else if (isTablet) {
-      return Column(
-        children: [
-          Row(children: [
-            Expanded(
-                child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildStatCard(cards[0]))),
-            Expanded(child: _buildStatCard(cards[1])),
-          ]),
-          const SizedBox(height: 16),
-          Row(children: [
-            Expanded(
-                child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildStatCard(cards[2]))),
-            Expanded(child: _buildStatCard(cards[3])),
-          ]),
-        ],
-      );
     } else {
-      return Column(
-        children: cards
-            .map((c) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildStatCard(c)))
-            .toList(),
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: isTablet ? 2 : 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: isTablet ? 1.5 : 1.18,
+        children: cards.map((c) => _buildStatCard(c)).toList(),
       );
     }
   }
