@@ -179,24 +179,34 @@ class OwnerDashboardView extends StatelessWidget {
             .toList(),
       );
     } else {
-      return GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: isTablet ? 2 : 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: isTablet ? 1.5 : 1.18,
-        children: cards.map((c) => _buildStatCard(c)).toList(),
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildStatCard(cards[0])),
+              const SizedBox(width: 12),
+              Expanded(child: _buildStatCard(cards[1])),
+            ],
+          ),
+          const SizedBox(width: 12, height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildStatCard(cards[2])),
+              const SizedBox(width: 12),
+              Expanded(child: _buildStatCard(cards[3])),
+            ],
+          ),
+        ],
       );
     }
   }
 
   Widget _buildStatCard(_StatCardData data) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
@@ -208,20 +218,21 @@ class OwnerDashboardView extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(11),
+                padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
                   color: data.bgColor,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(data.icon, color: data.color, size: 22),
+                child: Icon(data.icon, color: data.color, size: 20),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF0FDF9),
                   borderRadius: BorderRadius.circular(20),
@@ -229,12 +240,12 @@ class OwnerDashboardView extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.trending_up, size: 12, color: Color(0xFF0F9D94)),
-                    const SizedBox(width: 3),
+                    const Icon(Icons.trending_up, size: 11, color: Color(0xFF0F9D94)),
+                    const SizedBox(width: 2),
                     Text(
                       'Live',
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 9.5,
                         color: const Color(0xFF0F9D94),
                         fontWeight: FontWeight.bold,
                       ),
@@ -244,20 +255,26 @@ class OwnerDashboardView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            data.value,
-            style: GoogleFonts.inter(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF0F172A),
+          const SizedBox(height: 10),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              data.value,
+              style: GoogleFonts.inter(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF0F172A),
+              ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 3),
           Text(
             data.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF334155),
             ),
@@ -265,7 +282,9 @@ class OwnerDashboardView extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             data.subtitle,
-            style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF64748B)),
           ),
         ],
       ),
