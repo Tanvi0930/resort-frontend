@@ -105,6 +105,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           setState(() {
             _resorts = filteredResorts;
           });
+          _fetchBookingsFromBackend();
         }
       }
     } catch (e) {
@@ -129,8 +130,46 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           };
         }).toList();
 
+        // Strict Account-Wise Resort Booking Filtering for Owner Panel:
+        final String savedName = await AuthService.getSavedName();
+        final String activeOwner = savedName.isNotEmpty ? savedName.trim() : (widget.ownerName ?? '').trim();
+
+        final Set<String> ownerResortNames = _resorts
+            .map((r) => (r['name'] ?? '').toString().trim().toLowerCase())
+            .where((s) => s.isNotEmpty)
+            .toSet();
+
+        List<Map<String, dynamic>> filteredBookings = parsedBookings;
+
+        if (activeOwner.isNotEmpty &&
+            activeOwner.toLowerCase() != 'owner' &&
+            activeOwner.toLowerCase() != 'admin') {
+          final cleanOwner = activeOwner.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+          filteredBookings = parsedBookings.where((b) {
+            final bResort = (b['resortName'] ?? '').toString().trim().toLowerCase();
+            final cleanResort = bResort.replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+            // 1. Direct match with owner's resort list
+            if (ownerResortNames.contains(bResort)) return true;
+
+            // 2. Partial match with active owner account name
+            if (cleanResort.contains(cleanOwner) || cleanOwner.contains(cleanResort)) return true;
+
+            // 3. Partial match with any resort in owner's list
+            for (var ownerResort in ownerResortNames) {
+              final cleanOwnerResort = ownerResort.replaceAll(RegExp(r'[^a-z0-9]'), '');
+              if (cleanOwnerResort.isNotEmpty &&
+                  (cleanResort.contains(cleanOwnerResort) || cleanOwnerResort.contains(cleanResort))) {
+                return true;
+              }
+            }
+            return false;
+          }).toList();
+        }
+
         final List<Map<String, dynamic>> dynamicActivities = [];
-        for (var b in parsedBookings) {
+        for (var b in filteredBookings) {
           final guest = (b['guestName'] ?? '').toString().isNotEmpty ? b['guestName'] : 'Guest';
           final resort = (b['resortName'] ?? '').toString().isNotEmpty ? b['resortName'] : 'Resort';
           dynamicActivities.add({
@@ -143,7 +182,7 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
 
         if (mounted) {
           setState(() {
-            _bookings = parsedBookings;
+            _bookings = filteredBookings;
             _activities = dynamicActivities;
           });
         }
