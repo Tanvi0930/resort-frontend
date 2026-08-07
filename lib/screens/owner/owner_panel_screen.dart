@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../api_configue.dart';
@@ -542,14 +543,17 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   }
 
   Widget _buildHeaderBar(BuildContext context, bool isDesktop) {
+    final displayName = widget.ownerName ?? 'Resort Owner';
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'O';
+
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.12),
+            color: const Color(0xFFE2E8F0),
             width: 1,
           ),
         ),
@@ -559,19 +563,32 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           if (!isDesktop)
             Builder(
               builder: (innerContext) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
+                icon: const Icon(Icons.menu, color: Color(0xFF0F172A)),
                 onPressed: () => Scaffold.of(innerContext).openDrawer(),
               ),
             ),
           if (!isDesktop) const SizedBox(width: 8),
 
-          Text(
-            _getMenuTitle(_selectedMenuIndex),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E2D27),
-            ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getMenuTitle(_selectedMenuIndex),
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+              Text(
+                'Aqua Resort Management Console',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ],
           ),
 
           const Spacer(),
@@ -579,54 +596,56 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
           // Search Box
           if (isDesktop)
             Container(
-              width: 280,
-              height: 40,
+              width: 260,
+              height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F5F2),
-                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: const TextField(
+              child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search here...',
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                  prefixIcon:
-                      Icon(Icons.search, size: 18, color: Colors.grey),
+                  hintText: 'Search resorts, bookings...',
+                  hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF94A3B8)),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
 
-          const SizedBox(width: 20),
+          const SizedBox(width: 16),
 
           // Notification Bell
           Stack(
             children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined,
-                    color: Colors.black87),
-                onPressed: () {},
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF334155), size: 20),
+                  onPressed: () {},
+                ),
               ),
               Positioned(
-                right: 8,
-                top: 8,
+                right: 2,
+                top: 2,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
-                    color: Color(0xFFE57373),
+                    color: Color(0xFF0F9D94),
                     shape: BoxShape.circle,
                   ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
+                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
                   child: const Text(
                     '2',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -634,38 +653,49 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
             ],
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
 
-          // Profile Info
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop'),
-              ),
-              const SizedBox(width: 8),
-              if (isDesktop)
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.ownerName ?? 'Owner',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E2D27),
-                      ),
-                    ),
-                    const Text(
-                      'Resort Owner',
-                      style:
-                          TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
+          // Profile Pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF0F9D94).withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 15,
+                  backgroundColor: const Color(0xFF0F9D94),
+                  child: Text(
+                    initial,
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
                 ),
-            ],
+                if (isDesktop) ...[
+                  const SizedBox(width: 8),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      Text(
+                        'Verified Owner',
+                        style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFF0F9D94), fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -673,102 +703,152 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   }
 
   Widget _buildSidebarContents(BuildContext context) {
+    final displayName = widget.ownerName ?? 'Resort Owner';
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'O';
+
     return Column(
       children: [
-        // Logo Header
+        // Brand Header
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F4F2),
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0F9D94), Color(0xFF0A7B74)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F9D94).withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.villa_outlined,
-                  color: Color(0xFF0F4C43),
-                  size: 24,
+                child: const Center(
+                  child: Icon(Icons.villa_rounded, color: Colors.white, size: 24),
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Resort Owner',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E2D27),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Aqua Resorts',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0F172A),
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Welcome, ${widget.ownerName ?? 'Owner'}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey,
+                    Text(
+                      'Owner Control Center',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: const Color(0xFF64748B),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         ),
 
-        const Divider(height: 1),
+        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+
+        // Owner Account Info Card
+        Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFF0F9D94),
+                child: Text(
+                  initial,
+                  style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                    ),
+                    Text(
+                      'Active Session',
+                      style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF10B981), fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
 
         // Navigation Items
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             children: [
-              _buildSidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
-              _buildSidebarItem(
-                  1, Icons.location_on_outlined, 'Location'),
-              _buildSidebarItem(
-                  2, Icons.calendar_today_outlined, 'Bookings'),
-              _buildSidebarItem(
-                  3, Icons.villa_outlined, 'Resort Details'),
-              _buildSidebarItem(
-                  4, Icons.photo_library_outlined, 'Resort Images'),
+              _buildSidebarItem(0, Icons.dashboard_rounded, 'Dashboard Overview'),
+              _buildSidebarItem(1, Icons.location_on_rounded, 'Resort Locations'),
+              _buildSidebarItem(2, Icons.calendar_month_rounded, 'Manage Bookings'),
+              _buildSidebarItem(3, Icons.villa_rounded, 'Resort Details'),
+              _buildSidebarItem(4, Icons.photo_library_rounded, 'Resort Photo Gallery'),
             ],
           ),
         ),
 
-        // Logout
+        // Logout Button
         Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0),
           child: Container(
             width: double.infinity,
-            height: 48,
+            height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFFDECEA),
-              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFCA5A5)),
             ),
             child: InkWell(
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
-              borderRadius: BorderRadius.circular(10),
-              child: const Row(
+              borderRadius: BorderRadius.circular(12),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.logout,
-                      color: Color(0xFFE57373), size: 18),
-                  SizedBox(width: 8),
+                  const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 18),
+                  const SizedBox(width: 8),
                   Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Color(0xFFE57373),
+                    'Logout Session',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFFEF4444),
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
@@ -783,53 +863,58 @@ class _OwnerPanelScreenState extends State<OwnerPanelScreen> {
   Widget _buildSidebarItem(int index, IconData icon, String title) {
     final isSelected = _selectedMenuIndex == index;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Material(
-        color: isSelected ? const Color(0xFFF0F4F2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        color: isSelected ? const Color(0xFFF0FDF9) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
-        child: ListTile(
+        child: InkWell(
           onTap: () {
             setState(() {
               _selectedMenuIndex = index;
             });
-            if (MediaQuery.of(context).size.width < 900) {
+            if (MediaQuery.of(context).size.width < 1100) {
               Navigator.pop(context);
             }
           },
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8)),
-          leading: Icon(
-            icon,
-            color: isSelected
-                ? const Color(0xFF0F4C43)
-                : Colors.grey.shade600,
-            size: 20,
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: isSelected
-                  ? const Color(0xFF1E2D27)
-                  : Colors.grey.shade700,
-              fontWeight:
-                  isSelected ? FontWeight.bold : FontWeight.w500,
-              fontSize: 13.5,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              border: isSelected
+                  ? Border(left: BorderSide(color: const Color(0xFF0F9D94), width: 4))
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? const Color(0xFF0F9D94) : const Color(0xFF64748B),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      color: isSelected ? const Color(0xFF0F9D94) : const Color(0xFF334155),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
+                if (isSelected)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF0F9D94),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
             ),
           ),
-          // Active indicator dot
-          trailing: isSelected
-              ? Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF0F4C43),
-                    shape: BoxShape.circle,
-                  ),
-                )
-              : null,
         ),
       ),
     );
